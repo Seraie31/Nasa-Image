@@ -136,6 +136,14 @@ const Missions: React.FC = () => {
                   height="200"
                   image={mission.imageUrl}
                   alt={mission.name}
+                  sx={{ 
+                    objectFit: 'cover',
+                    bgcolor: 'black' // Fond noir pour les images en chargement
+                  }}
+                  onError={(e: any) => {
+                    // Image de fallback en cas d'erreur
+                    e.target.src = 'https://www.nasa.gov/wp-content/uploads/2023/03/nasa-logo-web-rgb.png';
+                  }}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>

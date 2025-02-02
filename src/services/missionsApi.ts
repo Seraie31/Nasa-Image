@@ -26,7 +26,7 @@ const missions: Mission[] = [
     status: 'active',
     launchDate: '2020-07-30',
     type: 'rover',
-    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/pia23764-16.jpg',
+    imageUrl: 'https://mars.nasa.gov/system/feature_items/images/6037_msl_banner.jpg',
     details: {
       objectives: [
         'Rechercher des signes de vie microbienne ancienne',
@@ -48,7 +48,7 @@ const missions: Mission[] = [
     status: 'active',
     launchDate: '2021-12-25',
     type: 'telescope',
-    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/webb.jpg',
+    imageUrl: 'https://stsci-opo.org/STScI-01G7DCYW190F6KWJWH89QPZB45.png',
     details: {
       objectives: [
         'Observer les premières galaxies après le Big Bang',
@@ -69,7 +69,7 @@ const missions: Mission[] = [
     status: 'active',
     launchDate: '2022-11-16',
     type: 'probe',
-    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/artemis_1.jpg',
+    imageUrl: 'https://www.nasa.gov/wp-content/uploads/2023/03/artemis-1-rocket-moon.jpg',
     details: {
       objectives: [
         'Atterrir la première femme et le prochain homme sur la Lune',
