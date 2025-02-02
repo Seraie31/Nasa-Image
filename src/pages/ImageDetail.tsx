@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Container,
@@ -8,22 +8,71 @@ import {
   Typography,
   Button,
   Grid,
+  CircularProgress,
 } from '@mui/material';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { NasaImage } from '../models/types';
+import { getImageDetails } from '../services/nasaApi';
 import DownloadIcon from '@mui/icons-material/Download';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const ImageDetail: React.FC = () => {
-  const location = useLocation();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { image } = location.state as { image: NasaImage };
+  const [image, setImage] = useState<NasaImage | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchImageDetails = async () => {
+      if (!id) return;
+      
+      try {
+        const imageData = await getImageDetails(id);
+        setImage(imageData);
+      } catch (err) {
+        console.error('Error fetching image details:', err);
+        setError('Erreur lors du chargement des détails de l\'image');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchImageDetails();
+  }, [id]);
 
   const handleDownload = () => {
-    if (image.hdurl) {
+    if (image?.hdurl) {
       window.open(image.hdurl, '_blank');
     }
   };
+
+  if (loading) {
+    return (
+      <Container>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
+  }
+
+  if (error || !image) {
+    return (
+      <Container>
+        <Box sx={{ my: 4 }}>
+          <Typography color="error" align="center">
+            {error || 'Image non trouvée'}
+          </Typography>
+          <Box sx={{ textAlign: 'center', mt: 2 }}>
+            <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>
+              Retour
+            </Button>
+          </Box>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg">

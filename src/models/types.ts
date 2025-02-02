@@ -1,10 +1,11 @@
 export interface NasaImage {
+  id: string;
   title: string;
   description: string;
-  date: string;
   url: string;
-  media_type: string;
   hdurl?: string;
+  date: string;
+  mediaType: string;
 }
 
 export interface SearchResponse {

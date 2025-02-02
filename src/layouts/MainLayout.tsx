@@ -1,9 +1,12 @@
 import React from 'react';
-import { Box, Container, AppBar, Toolbar, Typography, IconButton } from '@mui/material';
-import { Outlet } from 'react-router-dom';
-import MenuIcon from '@mui/icons-material/Menu';
+import { Box, Container, AppBar, Toolbar, Typography, IconButton, Button } from '@mui/material';
+import { Outlet, useNavigate } from 'react-router-dom';
+import HomeIcon from '@mui/icons-material/Home';
+import ExploreIcon from '@mui/icons-material/Explore';
 
 const MainLayout: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static">
@@ -14,12 +17,25 @@ const MainLayout: React.FC = () => {
             color="inherit"
             aria-label="menu"
             sx={{ mr: 2 }}
+            onClick={() => navigate('/')}
           >
-            <MenuIcon />
+            <HomeIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="h6" 
+            component="div" 
+            sx={{ flexGrow: 1, cursor: 'pointer' }}
+            onClick={() => navigate('/')}
+          >
             NASA Image Explorer
           </Typography>
+          <Button 
+            color="inherit" 
+            startIcon={<ExploreIcon />}
+            onClick={() => navigate('/explore')}
+          >
+            Explorer
+          </Button>
         </Toolbar>
       </AppBar>
       
@@ -30,7 +46,7 @@ const MainLayout: React.FC = () => {
       <Box component="footer" sx={{ py: 3, px: 2, mt: 'auto', backgroundColor: 'background.paper' }}>
         <Container maxWidth="sm">
           <Typography variant="body2" color="text.secondary" align="center">
-            © {new Date().getFullYear()} NASA Image Explorer. Powered by NASA API
+            {new Date().getFullYear()} NASA Image Explorer. créee par seraie1974@gmail.com
           </Typography>
         </Container>
       </Box>
