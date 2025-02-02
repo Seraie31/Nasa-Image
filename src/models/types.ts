@@ -6,6 +6,7 @@ export interface NasaImage {
   hdurl?: string;
   date: string;
   mediaType: string;
+  isApod?: boolean;
 }
 
 export interface SearchResponse {

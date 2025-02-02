@@ -13,14 +13,17 @@ export const getImageOfTheDay = async (): Promise<NasaImage> => {
       },
     });
 
+    // Pour l'image du jour, nous utilisons directement les données de l'APOD
+    // car elle ne suit pas le même format que les autres images NASA
     return {
-      id: response.data.date,
+      id: 'apod-' + response.data.date, // Préfixe pour identifier que c'est une image APOD
       title: response.data.title,
       description: response.data.explanation,
       url: response.data.url,
       hdurl: response.data.hdurl,
       date: response.data.date,
       mediaType: response.data.media_type,
+      isApod: true // Marqueur pour identifier les images APOD
     };
   } catch (error) {
     console.error('Error fetching image of the day:', error);
@@ -89,13 +92,35 @@ export const searchImages = async (query: string, page: number = 1): Promise<Nas
 
 export const getImageDetails = async (imageId: string): Promise<NasaImage> => {
   try {
+    // Si c'est une image APOD, on la récupère via l'API APOD
+    if (imageId.startsWith('apod-')) {
+      const date = imageId.replace('apod-', '');
+      const response = await axios.get(`${NASA_API_URL}/planetary/apod`, {
+        params: {
+          api_key: NASA_API_KEY,
+          date: date
+        },
+      });
+
+      return {
+        id: imageId,
+        title: response.data.title,
+        description: response.data.explanation,
+        url: response.data.url,
+        hdurl: response.data.hdurl,
+        date: response.data.date,
+        mediaType: response.data.media_type,
+        isApod: true
+      };
+    }
+
+    // Sinon, on utilise l'API images normale
     const response = await axios.get(`${NASA_IMAGES_URL}/asset/${imageId}`);
     const metadata = await axios.get(`${NASA_IMAGES_URL}/metadata/${imageId}`);
 
     const imageData = metadata.data.collection.items[0];
     const imageAssets = response.data.collection.items;
     
-    // Find the best quality images
     const originalImage = imageAssets.find((asset: any) => 
       asset.href.includes('orig') || asset.href.includes('large')
     ) || imageAssets[0];
@@ -112,6 +137,7 @@ export const getImageDetails = async (imageId: string): Promise<NasaImage> => {
       hdurl: hdImage.href,
       date: imageData.date_created || new Date().toISOString(),
       mediaType: 'image',
+      isApod: false
     };
   } catch (error) {
     console.error('Error fetching image details:', error);
