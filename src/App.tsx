@@ -9,6 +9,7 @@ import MainLayout from './layouts/MainLayout';
 const Home = React.lazy(() => import('./pages/Home'));
 const ImageDetail = React.lazy(() => import('./pages/ImageDetail'));
 const Explore = React.lazy(() => import('./pages/Explore'));
+const Missions = React.lazy(() => import('./pages/Missions'));
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Home />} />
               <Route path="explore" element={<Explore />} />
+              <Route path="missions" element={<Missions />} />
               <Route path="image/:id" element={<ImageDetail />} />
             </Route>
           </Routes>

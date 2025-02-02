@@ -3,6 +3,7 @@ import { Box, Container, AppBar, Toolbar, Typography, IconButton, Button } from 
 import { Outlet, useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import ExploreIcon from '@mui/icons-material/Explore';
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 
 const MainLayout: React.FC = () => {
   const navigate = useNavigate();
@@ -33,8 +34,16 @@ const MainLayout: React.FC = () => {
             color="inherit" 
             startIcon={<ExploreIcon />}
             onClick={() => navigate('/explore')}
+            sx={{ mr: 1 }}
           >
             Explorer
+          </Button>
+          <Button 
+            color="inherit" 
+            startIcon={<RocketLaunchIcon />}
+            onClick={() => navigate('/missions')}
+          >
+            Missions
           </Button>
         </Toolbar>
       </AppBar>

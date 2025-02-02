@@ -230,7 +230,15 @@ const Home: React.FC = () => {
           </Grid>
           
           <Grid item xs={12} md={4}>
-            <Card sx={{ height: '100%' }}>
+            <Card 
+              sx={{ 
+                height: '100%',
+                cursor: 'pointer',
+                transition: 'transform 0.2s',
+                '&:hover': { transform: 'scale(1.02)' }
+              }}
+              onClick={() => navigate('/missions')}
+            >
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <SatelliteAltIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
@@ -246,10 +254,9 @@ const Home: React.FC = () => {
                   variant="contained" 
                   color="primary" 
                   fullWidth
-                  disabled
                   startIcon={<RocketLaunchIcon />}
                 >
-                  Bientôt disponible
+                  Découvrir les missions
                 </Button>
               </CardContent>
             </Card>
