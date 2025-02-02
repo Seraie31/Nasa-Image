@@ -15,8 +15,10 @@ import {
   Divider,
   LinearProgress,
   Alert,
+  CardActions,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { getImageOfTheDay } from '../services/nasaApi';
 import { NasaImage } from '../models/types';
 import ExploreIcon from '@mui/icons-material/Explore';
@@ -263,28 +265,30 @@ const Home: React.FC = () => {
           </Grid>
           
           <Grid item xs={12} md={4}>
-            <Card sx={{ height: '100%' }}>
-              <CardContent>
+            <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <PublicIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
-                  <Typography gutterBottom variant="h5" component="div">
+                  <PublicIcon sx={{ mr: 1, color: 'primary.main' }} />
+                  <Typography variant="h5" component="div">
                     Vue de la Terre
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Observez notre planète depuis l'espace. Images satellites en temps réel,
-                  phénomènes météorologiques et changements environnementaux.
+                <Typography variant="body2" color="text.secondary">
+                  Observez notre planète depuis l'espace. Images satellites en temps réel, phénomènes
+                  météorologiques et changements environnementaux.
                 </Typography>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  fullWidth
-                  disabled
-                  startIcon={<PublicIcon />}
-                >
-                  Bientôt disponible
-                </Button>
               </CardContent>
+              <CardActions>
+                <Button
+                  component={RouterLink}
+                  to="/earth-view"
+                  startIcon={<ExploreIcon />}
+                  variant="contained"
+                  fullWidth
+                >
+                  Explorer
+                </Button>
+              </CardActions>
             </Card>
           </Grid>
         </Grid>
