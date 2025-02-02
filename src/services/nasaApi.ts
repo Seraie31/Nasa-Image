@@ -194,3 +194,29 @@ export const getImageDetails = async (imageId: string): Promise<NasaImage> => {
     throw new Error('Une erreur inattendue est survenue');
   }
 };
+
+export const getAsteroidImage = async (asteroidName: string): Promise<string> => {
+  try {
+    // Recherche d'images via l'API NASA Image and Video Library
+    const response = await axios.get(`https://images-api.nasa.gov/search`, {
+      params: {
+        q: asteroidName.replace('(', '').replace(')', ''),
+        media_type: 'image'
+      }
+    });
+
+    if (response.data.collection.items.length > 0) {
+      // Retourne l'URL de la première image trouvée
+      const imageData = response.data.collection.items[0];
+      if (imageData.links && imageData.links.length > 0) {
+        return imageData.links[0].href;
+      }
+    }
+
+    // Si aucune image spécifique n'est trouvée, retourne une image générique d'astéroïde
+    return '/images/generic-asteroid.jpg';
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l\'image de l\'astéroïde:', error);
+    return '/images/generic-asteroid.jpg';
+  }
+};

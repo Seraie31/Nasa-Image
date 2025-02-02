@@ -67,6 +67,7 @@ interface TimelineItemProps {
 }
 
 const TimelineItem: React.FC<TimelineItemProps> = ({ neo, onClick, isLeft, imageUrl }) => {
+  const [loading, setLoading] = useState(true);
   const dangerLevel = calculateDangerLevel(neo);
   const approach = neo.close_approach_data[0];
   const avgDiameter = (
@@ -98,22 +99,40 @@ const TimelineItem: React.FC<TimelineItemProps> = ({ neo, onClick, isLeft, image
         }}
         onClick={onClick}
       >
-        {imageUrl && (
-          <CardMedia
-            component="img"
-            height="200"
-            image={imageUrl}
-            alt={neo.name}
-            sx={{
-              objectFit: 'cover',
-              opacity: 0.8,
-              transition: 'opacity 0.3s',
-              '&:hover': {
-                opacity: 1
-              }
-            }}
-          />
-        )}
+        <Box sx={{ position: 'relative', height: 200 }}>
+          {loading && (
+            <Box sx={{ 
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(0, 0, 0, 0.1)'
+            }}>
+              <CircularProgress />
+            </Box>
+          )}
+          {imageUrl && (
+            <CardMedia
+              component="img"
+              height="200"
+              image={imageUrl}
+              alt={neo.name}
+              sx={{
+                objectFit: 'cover',
+                opacity: loading ? 0 : 0.8,
+                transition: 'opacity 0.3s',
+                '&:hover': {
+                  opacity: 1
+                }
+              }}
+              onLoad={() => setLoading(false)}
+            />
+          )}
+        </Box>
         <CardContent>
           <Typography variant="h6" component="div" gutterBottom>
             {neo.name.replace('(', '').replace(')', '')}
@@ -202,8 +221,12 @@ const SpaceWatch: React.FC = () => {
         // Fetch images for each NEO
         const images: Record<string, string> = {};
         for (const neo of allNeos) {
-          const imageUrl = await getAsteroidImage(neo.name);
-          images[neo.id] = imageUrl;
+          try {
+            const imageUrl = await getAsteroidImage(neo.name);
+            images[neo.id] = imageUrl;
+          } catch (err) {
+            console.error(`Error fetching image for ${neo.name}:`, err);
+          }
         }
         setNeoImages(images);
       } catch (err) {
