@@ -20,9 +20,17 @@ import {
   Tabs,
   Tab,
   Stack,
-  Divider
+  Divider,
+  CardMedia
 } from '@mui/material';
-import { getNeoFeed, NearEarthObject, calculateDangerLevel, formatVelocity, formatDistance } from '../services/neoApi';
+import {
+  getNeoFeed,
+  NearEarthObject,
+  calculateDangerLevel,
+  formatVelocity,
+  formatDistance,
+  getAsteroidImage
+} from '../services/neoApi';
 import { formatDateForApod } from '../utils/dateUtils';
 import WarningIcon from '@mui/icons-material/Warning';
 import SpeedIcon from '@mui/icons-material/Speed';
@@ -51,7 +59,14 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
-const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft: boolean }> = ({ neo, onClick, isLeft }) => {
+interface TimelineItemProps {
+  neo: NearEarthObject;
+  onClick: () => void;
+  isLeft: boolean;
+  imageUrl?: string;
+}
+
+const TimelineItem: React.FC<TimelineItemProps> = ({ neo, onClick, isLeft, imageUrl }) => {
   const dangerLevel = calculateDangerLevel(neo);
   const approach = neo.close_approach_data[0];
   const avgDiameter = (
@@ -61,8 +76,8 @@ const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft
 
   return (
     <Box sx={{ display: 'flex', mb: 4, justifyContent: isLeft ? 'flex-start' : 'flex-end' }}>
-      <Card 
-        sx={{ 
+      <Card
+        sx={{
           width: '45%',
           cursor: 'pointer',
           position: 'relative',
@@ -83,24 +98,40 @@ const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft
         }}
         onClick={onClick}
       >
+        {imageUrl && (
+          <CardMedia
+            component="img"
+            height="200"
+            image={imageUrl}
+            alt={neo.name}
+            sx={{
+              objectFit: 'cover',
+              opacity: 0.8,
+              transition: 'opacity 0.3s',
+              '&:hover': {
+                opacity: 1
+              }
+            }}
+          />
+        )}
         <CardContent>
           <Typography variant="h6" component="div" gutterBottom>
             {neo.name.replace('(', '').replace(')', '')}
           </Typography>
-          
+
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <Rating 
-              value={dangerLevel} 
-              readOnly 
+            <Rating
+              value={dangerLevel}
+              readOnly
               max={5}
               icon={<WarningIcon color="error" />}
               emptyIcon={<WarningIcon color="disabled" />}
             />
             {neo.is_potentially_hazardous_asteroid && (
-              <Chip 
-                label="Dangereux" 
-                color="error" 
-                size="small" 
+              <Chip
+                label="Dangereux"
+                color="error"
+                size="small"
                 sx={{ ml: 1 }}
               />
             )}
@@ -122,8 +153,8 @@ const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft
           </Typography>
 
           <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box component="span" sx={{ 
-              display: 'inline-flex', 
+            <Box component="span" sx={{
+              display: 'inline-flex',
               alignItems: 'center',
               mr: 1,
               width: 20,
@@ -148,13 +179,14 @@ const SpaceWatch: React.FC = () => {
   const [neoData, setNeoData] = useState<NearEarthObject[]>([]);
   const [selectedNeo, setSelectedNeo] = useState<NearEarthObject | null>(null);
   const [tabValue, setTabValue] = useState(0);
+  const [neoImages, setNeoImages] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchNeoData = async () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const today = new Date();
         const endDate = new Date();
         endDate.setDate(today.getDate() + 7);
@@ -166,11 +198,19 @@ const SpaceWatch: React.FC = () => {
 
         const allNeos = Object.values(feed.near_earth_objects).flat();
         setNeoData(allNeos);
+
+        // Fetch images for each NEO
+        const images: Record<string, string> = {};
+        for (const neo of allNeos) {
+          const imageUrl = await getAsteroidImage(neo.name);
+          images[neo.id] = imageUrl;
+        }
+        setNeoImages(images);
       } catch (err) {
         console.error('Error fetching NEO data:', err);
         setError(
-          err instanceof Error 
-            ? err.message 
+          err instanceof Error
+            ? err.message
             : 'Erreur lors du chargement des données'
         );
       } finally {
@@ -238,11 +278,12 @@ const SpaceWatch: React.FC = () => {
           }} />
           <Stack spacing={2}>
             {neoData.map((neo, index) => (
-              <TimelineItem 
+              <TimelineItem
                 key={neo.id}
                 neo={neo}
                 onClick={() => handleNeoClick(neo)}
                 isLeft={index % 2 === 0}
+                imageUrl={neoImages[neo.id]}
               />
             ))}
           </Stack>
@@ -261,8 +302,8 @@ const SpaceWatch: React.FC = () => {
 
             return (
               <Grid item xs={12} sm={6} md={4} key={neo.id}>
-                <Card 
-                  sx={{ 
+                <Card
+                  sx={{
                     height: '100%',
                     cursor: 'pointer',
                     borderLeft: neo.is_potentially_hazardous_asteroid ? '4px solid #f44336' : 'none',
@@ -273,24 +314,40 @@ const SpaceWatch: React.FC = () => {
                   }}
                   onClick={() => handleNeoClick(neo)}
                 >
+                  {neoImages[neo.id] && (
+                    <CardMedia
+                      component="img"
+                      height="200"
+                      image={neoImages[neo.id]}
+                      alt={neo.name}
+                      sx={{
+                        objectFit: 'cover',
+                        opacity: 0.8,
+                        transition: 'opacity 0.3s',
+                        '&:hover': {
+                          opacity: 1
+                        }
+                      }}
+                    />
+                  )}
                   <CardContent>
                     <Typography variant="h6" component="div" gutterBottom>
                       {neo.name.replace('(', '').replace(')', '')}
                     </Typography>
-                    
+
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Rating 
-                        value={dangerLevel} 
-                        readOnly 
+                      <Rating
+                        value={dangerLevel}
+                        readOnly
                         max={5}
                         icon={<WarningIcon color="error" />}
                         emptyIcon={<WarningIcon color="disabled" />}
                       />
                       {neo.is_potentially_hazardous_asteroid && (
-                        <Chip 
-                          label="Dangereux" 
-                          color="error" 
-                          size="small" 
+                        <Chip
+                          label="Dangereux"
+                          color="error"
+                          size="small"
                           sx={{ ml: 1 }}
                         />
                       )}
@@ -312,8 +369,8 @@ const SpaceWatch: React.FC = () => {
                     </Typography>
 
                     <Typography variant="body2" paragraph>
-                      <Box component="span" sx={{ 
-                        display: 'inline-flex', 
+                      <Box component="span" sx={{
+                        display: 'inline-flex',
                         alignItems: 'center',
                         mr: 1,
                         width: 20,
@@ -328,10 +385,10 @@ const SpaceWatch: React.FC = () => {
 
                     <Box sx={{ mt: 2 }}>
                       {neo.is_potentially_hazardous_asteroid && (
-                        <Chip 
-                          label="Potentiellement dangereux" 
-                          color="error" 
-                          size="small" 
+                        <Chip
+                          label="Potentiellement dangereux"
+                          color="error"
+                          size="small"
                           sx={{ mr: 1 }}
                         />
                       )}
@@ -356,9 +413,9 @@ const SpaceWatch: React.FC = () => {
               <Typography variant="h5">
                 {selectedNeo.name.replace('(', '').replace(')', '')}
               </Typography>
-              <Rating 
-                value={calculateDangerLevel(selectedNeo)} 
-                readOnly 
+              <Rating
+                value={calculateDangerLevel(selectedNeo)}
+                readOnly
                 max={5}
                 icon={<WarningIcon color="error" />}
                 emptyIcon={<WarningIcon color="disabled" />}
@@ -411,9 +468,9 @@ const SpaceWatch: React.FC = () => {
             </DialogContent>
             <DialogActions>
               <Button onClick={handleCloseDialog}>Fermer</Button>
-              <Button 
-                href={selectedNeo.nasa_jpl_url} 
-                target="_blank" 
+              <Button
+                href={selectedNeo.nasa_jpl_url}
+                target="_blank"
                 rel="noopener noreferrer"
                 variant="contained"
               >
