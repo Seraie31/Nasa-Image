@@ -54,6 +54,10 @@ function TabPanel(props: TabPanelProps) {
 const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft: boolean }> = ({ neo, onClick, isLeft }) => {
   const dangerLevel = calculateDangerLevel(neo);
   const approach = neo.close_approach_data[0];
+  const avgDiameter = (
+    neo.estimated_diameter.kilometers.estimated_diameter_min +
+    neo.estimated_diameter.kilometers.estimated_diameter_max
+  ) / 2;
 
   return (
     <Box sx={{ display: 'flex', mb: 4, justifyContent: isLeft ? 'flex-start' : 'flex-end' }}>
@@ -62,6 +66,7 @@ const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft
           width: '45%',
           cursor: 'pointer',
           position: 'relative',
+          borderLeft: neo.is_potentially_hazardous_asteroid ? '4px solid #f44336' : 'none',
           '&:hover': {
             transform: 'translateY(-4px)',
             transition: 'transform 0.2s'
@@ -79,10 +84,11 @@ const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft
         onClick={onClick}
       >
         <CardContent>
-          <Typography variant="h6" component="div">
+          <Typography variant="h6" component="div" gutterBottom>
             {neo.name.replace('(', '').replace(')', '')}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+          
+          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Rating 
               value={dangerLevel} 
               readOnly 
@@ -90,12 +96,44 @@ const TimelineItem: React.FC<{ neo: NearEarthObject; onClick: () => void; isLeft
               icon={<WarningIcon color="error" />}
               emptyIcon={<WarningIcon color="disabled" />}
             />
+            {neo.is_potentially_hazardous_asteroid && (
+              <Chip 
+                label="Dangereux" 
+                color="error" 
+                size="small" 
+                sx={{ ml: 1 }}
+              />
+            )}
           </Box>
-          <Typography variant="body2" color="text.secondary">
-            Date d'approche: {new Date(approach.close_approach_date).toLocaleDateString()}
+
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <DateRangeIcon sx={{ mr: 1, fontSize: 20 }} />
+            {new Date(approach.close_approach_date).toLocaleDateString()}
           </Typography>
-          <Typography variant="body2">
-            Distance: {formatDistance(approach.miss_distance.lunar, 'lunar')} distances lunaires
+
+          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <ExploreIcon sx={{ mr: 1, fontSize: 20 }} />
+            {formatDistance(approach.miss_distance.lunar, 'lunar')} distances lunaires
+          </Typography>
+
+          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+            <SpeedIcon sx={{ mr: 1, fontSize: 20 }} />
+            {formatVelocity(approach.relative_velocity.kilometers_per_hour)} km/h
+          </Typography>
+
+          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box component="span" sx={{ 
+              display: 'inline-flex', 
+              alignItems: 'center',
+              mr: 1,
+              width: 20,
+              height: 20,
+              borderRadius: '50%',
+              bgcolor: 'background.paper',
+              border: '2px solid',
+              borderColor: 'text.secondary'
+            }} />
+            {formatDistance(String(avgDiameter), 'km')} km de diamètre
           </Typography>
         </CardContent>
       </Card>
@@ -216,12 +254,18 @@ const SpaceWatch: React.FC = () => {
           {neoData.map((neo) => {
             const dangerLevel = calculateDangerLevel(neo);
             const approach = neo.close_approach_data[0];
+            const avgDiameter = (
+              neo.estimated_diameter.kilometers.estimated_diameter_min +
+              neo.estimated_diameter.kilometers.estimated_diameter_max
+            ) / 2;
+
             return (
               <Grid item xs={12} sm={6} md={4} key={neo.id}>
                 <Card 
                   sx={{ 
                     height: '100%',
                     cursor: 'pointer',
+                    borderLeft: neo.is_potentially_hazardous_asteroid ? '4px solid #f44336' : 'none',
                     '&:hover': {
                       transform: 'translateY(-4px)',
                       transition: 'transform 0.2s'
@@ -242,6 +286,14 @@ const SpaceWatch: React.FC = () => {
                         icon={<WarningIcon color="error" />}
                         emptyIcon={<WarningIcon color="disabled" />}
                       />
+                      {neo.is_potentially_hazardous_asteroid && (
+                        <Chip 
+                          label="Dangereux" 
+                          color="error" 
+                          size="small" 
+                          sx={{ ml: 1 }}
+                        />
+                      )}
                     </Box>
 
                     <Typography variant="body2" color="text.secondary" paragraph>
@@ -252,6 +304,26 @@ const SpaceWatch: React.FC = () => {
                     <Typography variant="body2" paragraph>
                       <SpeedIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
                       {formatVelocity(approach.relative_velocity.kilometers_per_hour)} km/h
+                    </Typography>
+
+                    <Typography variant="body2" paragraph>
+                      <ExploreIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
+                      {formatDistance(approach.miss_distance.lunar, 'lunar')} distances lunaires
+                    </Typography>
+
+                    <Typography variant="body2" paragraph>
+                      <Box component="span" sx={{ 
+                        display: 'inline-flex', 
+                        alignItems: 'center',
+                        mr: 1,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        bgcolor: 'background.paper',
+                        border: '2px solid',
+                        borderColor: 'text.secondary'
+                      }} />
+                      {formatDistance(String(avgDiameter), 'km')} km de diamètre
                     </Typography>
 
                     <Box sx={{ mt: 2 }}>
