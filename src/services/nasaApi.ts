@@ -5,25 +5,32 @@ const NASA_API_KEY = process.env.REACT_APP_NASA_API_KEY;
 const NASA_API_URL = 'https://api.nasa.gov';
 const NASA_IMAGES_URL = 'https://images-api.nasa.gov';
 
+// Fonction utilitaire pour formater la date au format YYYY-MM-DD
+const formatDate = (date: Date): string => {
+  return date.toISOString().split('T')[0];
+};
+
 export const getImageOfTheDay = async (): Promise<NasaImage> => {
   try {
+    // Utiliser la date d'aujourd'hui
+    const today = formatDate(new Date());
+    
     const response = await axios.get(`${NASA_API_URL}/planetary/apod`, {
       params: {
         api_key: NASA_API_KEY,
+        date: today // Ajouter explicitement la date
       },
     });
 
-    // Pour l'image du jour, nous utilisons directement les données de l'APOD
-    // car elle ne suit pas le même format que les autres images NASA
     return {
-      id: 'apod-' + response.data.date, // Préfixe pour identifier que c'est une image APOD
+      id: 'apod-' + response.data.date,
       title: response.data.title,
       description: response.data.explanation,
       url: response.data.url,
-      hdurl: response.data.hdurl,
+      hdurl: response.data.hdurl || response.data.url, // Fallback vers url si hdurl n'existe pas
       date: response.data.date,
       mediaType: response.data.media_type,
-      isApod: true // Marqueur pour identifier les images APOD
+      isApod: true
     };
   } catch (error) {
     console.error('Error fetching image of the day:', error);
