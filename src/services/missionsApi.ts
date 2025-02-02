@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+const NASA_API_KEY = process.env.REACT_APP_NASA_API_KEY;
+const NASA_API_URL = 'https://api.nasa.gov';
+const NASA_IMAGES_URL = 'https://images-api.nasa.gov';
+
 export type MissionType = 'rover' | 'satellite' | 'probe' | 'telescope';
 export type MissionStatus = 'active' | 'completed' | 'planned';
 
@@ -20,179 +24,173 @@ export interface Mission {
   };
 }
 
-// Données simulées des missions (à remplacer par une vraie API plus tard)
-const missions: Mission[] = [
-  {
-    id: 'perseverance',
-    name: 'Mars Perseverance Rover',
-    description: 'Le rover Perseverance explore la surface de Mars à la recherche de signes de vie ancienne et collecte des échantillons pour un futur retour sur Terre.',
-    status: 'active',
-    launchDate: '2020-07-30',
-    type: 'rover',
-    imageUrl: 'https://mars.nasa.gov/system/feature_items/images/6037_msl_banner.jpg',
-    details: {
-      objectives: [
-        'Rechercher des signes de vie microbienne ancienne',
-        'Collecter des échantillons de roches et de régolithe',
-        "Tester la production d'oxygène à partir de l'atmosphère martienne"
-      ],
-      location: 'Cratère Jezero, Mars',
-      technology: [
-        "MOXIE - Production d'oxygène",
-        'SuperCam - Analyse des roches',
-        'Ingenuity - Hélicoptère martien'
-      ]
-    }
-  },
-  {
-    id: 'webb',
-    name: 'James Webb Space Telescope',
-    description: "Le plus grand et le plus puissant télescope spatial jamais construit, capable d'observer les premières galaxies formées dans l'univers primitif.",
-    status: 'active',
-    launchDate: '2021-12-25',
-    type: 'telescope',
-    imageUrl: 'https://stsci-opo.org/STScI-01G7DCYW190F6KWJWH89QPZB45.png',
-    details: {
-      objectives: [
-        'Observer les premières galaxies après le Big Bang',
-        "Étudier la formation et l'évolution des galaxies",
-        'Comprendre la formation des étoiles et des systèmes planétaires'
-      ],
-      technology: [
-        'Miroir principal segmenté de 6,5 mètres',
-        "Instruments d'observation infrarouge",
-        'Bouclier solaire en 5 couches'
-      ]
-    }
-  },
-  {
-    id: 'artemis',
-    name: 'Programme Artemis',
-    description: 'Programme spatial visant à ramener des humains sur la Lune et à établir une présence durable pour préparer les voyages vers Mars.',
-    status: 'active',
-    launchDate: '2022-11-16',
-    type: 'probe',
-    imageUrl: 'https://www.nasa.gov/wp-content/uploads/2023/03/artemis-1-rocket-moon.jpg',
-    details: {
-      objectives: [
-        'Atterrir la première femme et le prochain homme sur la Lune',
-        'Établir une base lunaire durable',
-        'Développer les technologies pour les missions vers Mars'
-      ],
-      technology: [
-        'Système de lancement spatial (SLS)',
-        'Vaisseau spatial Orion',
-        'Station spatiale lunaire Gateway'
-      ]
-    }
-  },
-  {
-    id: 'curiosity',
-    name: 'Mars Curiosity Rover',
-    description: 'Le rover Curiosity explore le cratère Gale sur Mars pour étudier le climat et la géologie martienne.',
-    status: 'active',
-    launchDate: '2011-11-26',
-    type: 'rover',
-    imageUrl: 'https://mars.nasa.gov/system/news_items/main_images/8944_1-curiosity-banner.jpg',
-    details: {
-      objectives: [
-        'Étudier le climat et la géologie de Mars',
-        'Évaluer si Mars a pu abriter la vie',
-        'Étudier le rayonnement à la surface de Mars'
-      ],
-      location: 'Cratère Gale, Mars',
-      technology: [
-        'ChemCam - Analyse chimique par laser',
-        'SAM - Analyse des composés organiques',
-        'RAD - Détection des radiations'
-      ]
-    }
-  },
-  {
-    id: 'hubble',
-    name: 'Télescope Spatial Hubble',
-    description: 'Le télescope spatial Hubble a révolutionné notre compréhension du cosmos depuis plus de 30 ans.',
-    status: 'active',
-    launchDate: '1990-04-24',
-    type: 'telescope',
-    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/hubble_30th_anniversary.jpg',
-    details: {
-      objectives: [
-        'Observer les galaxies lointaines',
-        'Étudier les planètes du système solaire',
-        'Capturer des images emblématiques du cosmos'
-      ],
-      technology: [
-        'Miroir principal de 2,4 mètres',
-        'Caméras à haute résolution',
-        'Spectromètres'
-      ]
-    }
-  },
-  {
-    id: 'voyager1',
-    name: 'Voyager 1',
-    description: 'La sonde spatiale Voyager 1 est l\'objet créé par l\'homme le plus éloigné de la Terre, explorant l\'espace interstellaire.',
-    status: 'completed',
-    launchDate: '1977-09-05',
-    type: 'probe',
-    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/voyager_1.jpg',
-    details: {
-      objectives: [
-        'Explorer Jupiter et Saturne',
-        'Étudier l\'espace interstellaire',
-        'Transporter le Golden Record'
-      ],
-      technology: [
-        'Instruments de mesure du plasma',
-        'Caméras',
-        'Antenne à grand gain'
-      ],
-      achievements: [
-        'Premier objet humain à quitter l\'héliosphère',
-        'Photos détaillées de Jupiter et Saturne',
-        'Plus de 45 ans de fonctionnement'
-      ]
-    }
-  },
-  {
-    id: 'dragonfly',
-    name: 'Dragonfly',
-    description: 'Future mission d\'exploration de Titan, la plus grande lune de Saturne, utilisant un drone à propulsion nucléaire.',
-    status: 'planned',
-    launchDate: '2027-06-01',
-    type: 'probe',
-    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/dragonfly-titan.jpg',
-    details: {
-      objectives: [
-        'Explorer la surface de Titan',
-        'Étudier la chimie prébiotique',
-        'Rechercher des signes de vie potentielle'
-      ],
-      location: 'Titan, lune de Saturne',
-      technology: [
-        'Drone à propulsion nucléaire',
-        'Instruments d\'analyse chimique',
-        'Caméras panoramiques'
-      ]
-    }
-  }
-];
+// Fonction pour obtenir les données des rovers martiens
+const getMarsRovers = async (): Promise<Mission[]> => {
+  try {
+    const response = await axios.get(`${NASA_API_URL}/mars-photos/api/v1/rovers`, {
+      params: { api_key: NASA_API_KEY }
+    });
 
-export const getMissions = (): Promise<Mission[]> => {
-  // Simulation d'une requête API
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(missions);
-    }, 1000);
-  });
+    return response.data.rovers.map((rover: any) => ({
+      id: rover.name.toLowerCase(),
+      name: `${rover.name} Rover`,
+      description: `Rover d'exploration martienne ${rover.status === 'active' ? 'explorant actuellement' : 'ayant exploré'} la surface de Mars.`,
+      status: rover.status === 'active' ? 'active' : 'completed',
+      launchDate: rover.launch_date,
+      endDate: rover.max_date,
+      type: 'rover',
+      imageUrl: `https://mars.nasa.gov/system/feature_items/images/${rover.name.toLowerCase()}_banner.jpg`,
+      details: {
+        objectives: [
+          'Explorer la surface martienne',
+          'Analyser la composition des roches',
+          'Rechercher des signes de vie ancienne'
+        ],
+        location: rover.landing_site,
+        technology: [
+          'Caméras haute résolution',
+          'Instruments d\'analyse chimique',
+          'Bras robotique'
+        ]
+      }
+    }));
+  } catch (error) {
+    console.error('Erreur lors de la récupération des rovers:', error);
+    return [];
+  }
 };
 
-export const getMissionById = (id: string): Promise<Mission | undefined> => {
-  // Simulation d'une requête API
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(missions.find(mission => mission.id === id));
-    }, 500);
-  });
+// Fonction pour obtenir les images et informations des missions via l'API NASA Images
+const getMissionImages = async (query: string): Promise<any> => {
+  try {
+    const response = await axios.get(`${NASA_IMAGES_URL}/search`, {
+      params: {
+        q: query,
+        media_type: 'image',
+        year_start: '2020',
+        page_size: 1
+      }
+    });
+
+    if (response.data.collection.items.length > 0) {
+      const item = response.data.collection.items[0];
+      return {
+        imageUrl: item.links?.[0]?.href,
+        description: item.data[0]?.description
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des images:', error);
+    return null;
+  }
+};
+
+// Fonction pour obtenir les données des missions spatiales actuelles
+const getCurrentMissions = async (): Promise<Mission[]> => {
+  const baseMissions = [
+    {
+      id: 'webb',
+      name: 'James Webb Space Telescope',
+      type: 'telescope' as MissionType,
+      status: 'active' as MissionStatus,
+      description: "Le plus grand et le plus puissant télescope spatial jamais construit.",
+      imageUrl: 'https://www.nasa.gov/wp-content/uploads/2023/03/nasa-logo-web-rgb.png',
+      details: {
+        objectives: [
+          'Observer les premières galaxies après le Big Bang',
+          "Étudier la formation et l'évolution des galaxies",
+          'Comprendre la formation des étoiles et des systèmes planétaires'
+        ],
+        technology: [
+          'Miroir principal segmenté de 6,5 mètres',
+          "Instruments d'observation infrarouge",
+          'Bouclier solaire en 5 couches'
+        ]
+      }
+    },
+    {
+      id: 'artemis',
+      name: 'Programme Artemis',
+      type: 'probe' as MissionType,
+      status: 'active' as MissionStatus,
+      description: 'Programme spatial visant à ramener des humains sur la Lune.',
+      imageUrl: 'https://www.nasa.gov/wp-content/uploads/2023/03/nasa-logo-web-rgb.png',
+      details: {
+        objectives: [
+          'Atterrir la première femme et le prochain homme sur la Lune',
+          'Établir une base lunaire durable',
+          'Développer les technologies pour les missions vers Mars'
+        ],
+        technology: [
+          'Système de lancement spatial (SLS)',
+          'Vaisseau spatial Orion',
+          'Station spatiale lunaire Gateway'
+        ]
+      }
+    },
+    {
+      id: 'dragonfly',
+      name: 'Dragonfly',
+      type: 'probe' as MissionType,
+      status: 'planned' as MissionStatus,
+      description: "Mission d'exploration de Titan, la plus grande lune de Saturne.",
+      imageUrl: 'https://www.nasa.gov/wp-content/uploads/2023/03/nasa-logo-web-rgb.png',
+      details: {
+        objectives: [
+          'Explorer la surface de Titan',
+          'Étudier la chimie prébiotique',
+          'Rechercher des signes de vie potentielle'
+        ],
+        technology: [
+          'Drone à propulsion nucléaire',
+          "Instruments d'analyse chimique",
+          'Caméras panoramiques'
+        ],
+        location: 'Titan, lune de Saturne'
+      }
+    }
+  ];
+
+  // Enrichir chaque mission avec des données de l'API NASA Images
+  const enrichedMissions = await Promise.all(
+    baseMissions.map(async (mission) => {
+      const imageData = await getMissionImages(mission.name);
+      return {
+        ...mission,
+        imageUrl: imageData?.imageUrl || mission.imageUrl,
+        description: imageData?.description || mission.description
+      };
+    })
+  );
+
+  return enrichedMissions;
+};
+
+export const getMissions = async (): Promise<Mission[]> => {
+  try {
+    // Obtenir les données des rovers et des missions actuelles en parallèle
+    const [rovers, currentMissions] = await Promise.all([
+      getMarsRovers(),
+      getCurrentMissions()
+    ]);
+
+    // Combiner les résultats
+    const allMissions = [...rovers, ...currentMissions];
+
+    // Trier les missions par date de lancement (les plus récentes en premier)
+    return allMissions.sort((a, b) => {
+      if (!a.launchDate) return 1;
+      if (!b.launchDate) return -1;
+      return new Date(b.launchDate).getTime() - new Date(a.launchDate).getTime();
+    });
+  } catch (error) {
+    console.error('Erreur lors de la récupération des missions:', error);
+    throw new Error('Impossible de récupérer les données des missions');
+  }
+};
+
+export const getMissionById = async (id: string): Promise<Mission | undefined> => {
+  const missions = await getMissions();
+  return missions.find(mission => mission.id === id);
 };

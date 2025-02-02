@@ -49,22 +49,33 @@ const Missions = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<MissionStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<MissionType | 'all'>('all');
-
-  useEffect(() => {
-    loadMissions();
-  }, []);
+  const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
 
   const loadMissions = async () => {
     try {
+      setLoading(true);
       const data = await getMissions();
       setMissions(data);
       setError(null);
+      setLastUpdate(new Date());
     } catch (err) {
       setError("Erreur lors du chargement des missions");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadMissions();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadMissions();
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleClose = () => {
     setSelectedMission(null);
@@ -155,6 +166,10 @@ const Missions = () => {
     <Container sx={{ py: 4 }}>
       <Typography variant="h3" component="h1" gutterBottom align="center">
         Missions Spatiales
+      </Typography>
+
+      <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+        Dernière mise à jour : {lastUpdate.toLocaleString()}
       </Typography>
 
       {/* Filtres */}
