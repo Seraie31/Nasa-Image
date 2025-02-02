@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { NasaImage } from '../models/types';
+import { extractDateFromApodId, isValidApodDate } from '../utils/dateUtils';
 
 const NASA_API_KEY = process.env.REACT_APP_NASA_API_KEY;
 const NASA_API_URL = 'https://api.nasa.gov';
@@ -99,55 +100,97 @@ export const searchImages = async (query: string, page: number = 1): Promise<Nas
 
 export const getImageDetails = async (imageId: string): Promise<NasaImage> => {
   try {
-    // Si c'est une image APOD, on la récupère via l'API APOD
+    // Vérifier si c'est une image APOD
     if (imageId.startsWith('apod-')) {
-      const date = imageId.replace('apod-', '');
-      const response = await axios.get(`${NASA_API_URL}/planetary/apod`, {
-        params: {
-          api_key: NASA_API_KEY,
-          date: date
-        },
-      });
+      const date = extractDateFromApodId(imageId);
+      if (!date) {
+        throw new Error('Format de date invalide pour APOD (utilisez YYYY-MM-DD)');
+      }
 
-      return {
-        id: imageId,
-        title: response.data.title,
-        description: response.data.explanation,
-        url: response.data.url,
-        hdurl: response.data.hdurl,
-        date: response.data.date,
-        mediaType: response.data.media_type,
-        isApod: true
-      };
+      if (!isValidApodDate(date)) {
+        throw new Error('Date invalide pour APOD (doit être entre le 16/06/1995 et aujourd\'hui)');
+      }
+
+      try {
+        const apodResponse = await axios.get(`${NASA_API_URL}/planetary/apod`, {
+          params: {
+            api_key: NASA_API_KEY,
+            date: date
+          }
+        });
+
+        if (apodResponse.data) {
+          return {
+            id: imageId,
+            title: apodResponse.data.title,
+            description: apodResponse.data.explanation,
+            url: apodResponse.data.url,
+            hdurl: apodResponse.data.hdurl || apodResponse.data.url,
+            date: apodResponse.data.date,
+            mediaType: apodResponse.data.media_type,
+            isApod: true
+          };
+        }
+      } catch (apodError) {
+        if (axios.isAxiosError(apodError)) {
+          if (apodError.response?.status === 400) {
+            throw new Error('Date invalide pour APOD');
+          }
+          throw new Error(`Erreur lors de la récupération de l'image APOD: ${apodError.response?.status || 'Erreur réseau'}`);
+        }
+        throw apodError;
+      }
     }
 
-    // Sinon, on utilise l'API images normale
-    const response = await axios.get(`${NASA_IMAGES_URL}/asset/${imageId}`);
-    const metadata = await axios.get(`${NASA_IMAGES_URL}/metadata/${imageId}`);
+    // Si ce n'est pas une image APOD, essayer l'API NASA Images
+    const [assetResponse, metadataResponse] = await Promise.all([
+      axios.get(`${NASA_IMAGES_URL}/asset/${imageId}`),
+      axios.get(`${NASA_IMAGES_URL}/metadata/${imageId}`)
+    ]).catch(error => {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        throw new Error('Image non trouvée dans la bibliothèque NASA');
+      }
+      throw error;
+    });
 
-    const imageData = metadata.data.collection.items[0];
-    const imageAssets = response.data.collection.items;
-    
+    if (!assetResponse.data?.collection?.items || !metadataResponse.data?.collection?.items) {
+      throw new Error('Format de réponse invalide de l\'API NASA Images');
+    }
+
+    const imageData = metadataResponse.data.collection.items[0];
+    const imageAssets = assetResponse.data.collection.items;
+
+    if (!imageData || !imageAssets || imageAssets.length === 0) {
+      throw new Error('Image non trouvée');
+    }
+
     const originalImage = imageAssets.find((asset: any) => 
       asset.href.includes('orig') || asset.href.includes('large')
     ) || imageAssets[0];
-    
+
     const hdImage = imageAssets.find((asset: any) => 
       asset.href.includes('large') || asset.href.includes('orig')
     ) || originalImage;
 
+    if (!originalImage.href) {
+      throw new Error('URL de l\'image invalide');
+    }
+
     return {
       id: imageId,
-      title: imageData.title || 'Sans titre',
-      description: imageData.description || 'Aucune description disponible',
+      title: imageData.data?.[0]?.title || 'Sans titre',
+      description: imageData.data?.[0]?.description || 'Aucune description disponible',
       url: originalImage.href,
       hdurl: hdImage.href,
-      date: imageData.date_created || new Date().toISOString(),
+      date: imageData.data?.[0]?.date_created || new Date().toISOString(),
       mediaType: 'image',
       isApod: false
     };
   } catch (error) {
     console.error('Error fetching image details:', error);
-    throw error;
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Une erreur inattendue est survenue');
   }
 };

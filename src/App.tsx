@@ -4,6 +4,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import theme from './theme/theme';
 import MainLayout from './layouts/MainLayout';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy load pages
 const Home = React.lazy(() => import('./pages/Home'));
@@ -16,16 +17,18 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <React.Suspense fallback={<div>Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<MainLayout />}>
-              <Route index element={<Home />} />
-              <Route path="explore" element={<Explore />} />
-              <Route path="missions" element={<Missions />} />
-              <Route path="image/:id" element={<ImageDetail />} />
-            </Route>
-          </Routes>
-        </React.Suspense>
+        <ErrorBoundary>
+          <React.Suspense fallback={<div>Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<MainLayout />}>
+                <Route index element={<Home />} />
+                <Route path="explore" element={<Explore />} />
+                <Route path="missions" element={<Missions />} />
+                <Route path="image/:id" element={<ImageDetail />} />
+              </Route>
+            </Routes>
+          </React.Suspense>
+        </ErrorBoundary>
       </Router>
     </ThemeProvider>
   );

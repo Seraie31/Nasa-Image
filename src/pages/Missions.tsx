@@ -1,34 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Container,
   Grid,
   Card,
   CardContent,
   CardMedia,
-  Typography,
-  Box,
-  Chip,
-  LinearProgress,
-  Alert,
   CardActions,
-  Button,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
+  Typography,
+  Chip,
+  Box,
   TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  Stack,
   Paper,
+  Stack,
   IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
   Tooltip,
+  Tab,
+  Tabs,
+  Alert,
+  LinearProgress,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
 import { getMissions } from '../services/missionsApi';
 import type { Mission, MissionType, MissionStatus } from '../services/missionsApi';
@@ -40,6 +42,36 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import BuildIcon from '@mui/icons-material/Build';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
+import MissionTimeline from '../components/MissionTimeline';
+import MissionGlobe from '../components/MissionGlobe';
+
+import '../styles/animations.css';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+const TabPanel = (props: TabPanelProps) => {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`mission-tabpanel-${index}`}
+      aria-labelledby={`mission-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ p: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+};
 
 const Missions = () => {
   const [missions, setMissions] = useState<Mission[]>([]);
@@ -50,6 +82,11 @@ const Missions = () => {
   const [statusFilter, setStatusFilter] = useState<MissionStatus | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<MissionType | 'all'>('all');
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
 
   const loadMissions = async () => {
     try {
@@ -163,17 +200,23 @@ const Missions = () => {
   }
 
   return (
-    <Container sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom align="center">
+    <Container maxWidth="lg" sx={{ py: 4 }} className="fade-in">
+      <Typography variant="h3" component="h1" gutterBottom align="center" className="slide-up">
         Missions Spatiales
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" align="center" sx={{ mb: 2 }}>
+      <Typography 
+        variant="body2" 
+        color="text.secondary" 
+        align="center" 
+        sx={{ mb: 2 }}
+        className="slide-up"
+      >
         Dernière mise à jour : {lastUpdate.toLocaleString()}
       </Typography>
 
       {/* Filtres */}
-      <Paper sx={{ p: 2, mb: 4 }}>
+      <Paper sx={{ p: 2, mb: 4 }} className="scale-in">
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <TextField
             label="Rechercher une mission"
@@ -222,24 +265,45 @@ const Missions = () => {
         </Stack>
       </Paper>
 
-      {/* Résultats */}
-      {filteredMissions.length === 0 ? (
-        <Alert severity="info">
-          Aucune mission ne correspond à vos critères de recherche.
-        </Alert>
-      ) : (
+      {/* Onglets */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }} className="fade-in">
+        <Tabs 
+          value={tabValue} 
+          onChange={handleTabChange} 
+          aria-label="mission views"
+          className="tab-transition"
+        >
+          <Tab label="Carte" />
+          <Tab label="Timeline" />
+          <Tab label="Grille" />
+        </Tabs>
+      </Box>
+
+      {/* Vue Carte */}
+      <TabPanel value={tabValue} index={0}>
+        <div className={`globe-container ${tabValue === 0 ? 'fade-in' : ''}`}>
+          <MissionGlobe missions={filteredMissions} />
+        </div>
+      </TabPanel>
+
+      {/* Vue Timeline */}
+      <TabPanel value={tabValue} index={1}>
+        <div className={`timeline-progress ${tabValue === 1 ? 'fade-in' : ''}`}>
+          <MissionTimeline missions={filteredMissions} />
+        </div>
+      </TabPanel>
+
+      {/* Vue Grille */}
+      <TabPanel value={tabValue} index={2}>
         <Grid container spacing={4}>
-          {filteredMissions.map((mission) => (
+          {filteredMissions.map((mission, index) => (
             <Grid item key={mission.id} xs={12} sm={6} md={4}>
               <Card 
+                className="mission-card scale-in"
                 sx={{ 
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'transform 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.02)',
-                  },
                 }}
               >
                 <CardMedia
@@ -297,7 +361,7 @@ const Missions = () => {
             </Grid>
           ))}
         </Grid>
-      )}
+      </TabPanel>
 
       {/* Dialog des détails */}
       <Dialog
@@ -305,6 +369,7 @@ const Missions = () => {
         onClose={handleClose}
         maxWidth="md"
         fullWidth
+        className="scale-in"
       >
         {selectedMission && (
           <>

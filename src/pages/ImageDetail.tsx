@@ -23,16 +23,31 @@ const ImageDetail: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   useEffect(() => {
     const fetchImageDetails = async () => {
-      if (!id) return;
+      if (!id) {
+        setError('ID de l\'image manquant');
+        setLoading(false);
+        return;
+      }
       
       try {
+        setLoading(true);
+        setError(null);
         const imageData = await getImageDetails(id);
         setImage(imageData);
       } catch (err) {
         console.error('Error fetching image details:', err);
-        setError('Erreur lors du chargement des détails de l\'image');
+        setError(
+          err instanceof Error 
+            ? err.message 
+            : 'Erreur lors du chargement des détails de l\'image'
+        );
+        setImage(null);
       } finally {
         setLoading(false);
       }
@@ -41,93 +56,98 @@ const ImageDetail: React.FC = () => {
     fetchImageDetails();
   }, [id]);
 
-  const handleDownload = () => {
-    if (image?.hdurl) {
-      window.open(image.hdurl, '_blank');
-    }
-  };
-
   if (loading) {
     return (
-      <Container>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
-          <CircularProgress />
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography variant="h5" color="error" gutterBottom>
+            {error}
+          </Typography>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBack}
+            variant="contained"
+            sx={{ mt: 2 }}
+          >
+            RETOUR
+          </Button>
         </Box>
       </Container>
     );
   }
 
-  if (error || !image) {
+  if (!image) {
     return (
-      <Container>
-        <Box sx={{ my: 4 }}>
-          <Typography color="error" align="center">
-            {error || 'Image non trouvée'}
+      <Container maxWidth="md" sx={{ py: 4 }}>
+        <Box sx={{ textAlign: 'center', py: 4 }}>
+          <Typography variant="h5" gutterBottom>
+            Image non trouvée
           </Typography>
-          <Box sx={{ textAlign: 'center', mt: 2 }}>
-            <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>
-              Retour
-            </Button>
-          </Box>
+          <Button
+            startIcon={<ArrowBackIcon />}
+            onClick={handleBack}
+            variant="contained"
+            sx={{ mt: 2 }}
+          >
+            RETOUR
+          </Button>
         </Box>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Button
-          startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(-1)}
-          sx={{ mb: 2 }}
-        >
-          Retour
-        </Button>
-
-        <Card>
-          <CardMedia
-            component="img"
-            height="600"
-            image={image.url}
-            alt={image.title}
-            sx={{ objectFit: 'contain', bgcolor: 'black' }}
-          />
-          <CardContent>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="h4" component="h1" gutterBottom>
-                  {image.title}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12}>
-                <Typography variant="body1" paragraph>
-                  {image.description}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle1" color="text.secondary">
-                  Date: {new Date(image.date).toLocaleDateString()}
-                </Typography>
-              </Grid>
-
-              <Grid item xs={12} sm={6} sx={{ textAlign: 'right' }}>
-                {image.hdurl && (
-                  <Button
-                    variant="contained"
-                    startIcon={<DownloadIcon />}
-                    onClick={handleDownload}
-                  >
-                    Télécharger HD
-                  </Button>
-                )}
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      </Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Button
+        startIcon={<ArrowBackIcon />}
+        onClick={handleBack}
+        sx={{ mb: 3 }}
+      >
+        Retour
+      </Button>
+      
+      <Card>
+        <CardMedia
+          component="img"
+          image={image.url}
+          alt={image.title}
+          sx={{
+            maxHeight: '70vh',
+            objectFit: 'contain',
+            bgcolor: 'black'
+          }}
+        />
+        <CardContent>
+          <Typography variant="h4" gutterBottom>
+            {image.title}
+          </Typography>
+          <Typography variant="body1" color="text.secondary" paragraph>
+            {image.description}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" display="block">
+            Date: {new Date(image.date).toLocaleDateString()}
+          </Typography>
+          {image.hdurl && (
+            <Button
+              href={image.hdurl}
+              target="_blank"
+              rel="noopener noreferrer"
+              startIcon={<DownloadIcon />}
+              sx={{ mt: 2 }}
+            >
+              Télécharger en HD
+            </Button>
+          )}
+        </CardContent>
+      </Card>
     </Container>
   );
 };
