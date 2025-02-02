@@ -20,64 +20,66 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Stack,
+  Paper,
+  IconButton,
+  Tooltip,
 } from '@mui/material';
-import { getMissions, Mission } from '../services/missionsApi';
+import { getMissions } from '../services/missionsApi';
+import type { Mission, MissionType, MissionStatus } from '../services/missionsApi';
 import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
 import TravelExploreIcon from '@mui/icons-material/TravelExplore';
 import ExploreIcon from '@mui/icons-material/Explore';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 import BuildIcon from '@mui/icons-material/Build';
+import SearchIcon from '@mui/icons-material/Search';
+import ClearIcon from '@mui/icons-material/Clear';
 
-const Missions: React.FC = () => {
+const Missions = () => {
   const [missions, setMissions] = useState<Mission[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<MissionStatus | 'all'>('all');
+  const [typeFilter, setTypeFilter] = useState<MissionType | 'all'>('all');
 
   useEffect(() => {
-    const fetchMissions = async () => {
-      try {
-        const data = await getMissions();
-        setMissions(data);
-      } catch (err) {
-        setError('Erreur lors du chargement des missions');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMissions();
+    loadMissions();
   }, []);
 
-  const getStatusColor = (status: Mission['status']) => {
-    switch (status) {
-      case 'active':
-        return 'success';
-      case 'completed':
-        return 'info';
-      case 'planned':
-        return 'warning';
-      default:
-        return 'default';
+  const loadMissions = async () => {
+    try {
+      const data = await getMissions();
+      setMissions(data);
+      setError(null);
+    } catch (err) {
+      setError("Erreur lors du chargement des missions");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getStatusLabel = (status: Mission['status']) => {
-    switch (status) {
-      case 'active':
-        return 'Active';
-      case 'completed':
-        return 'Terminée';
-      case 'planned':
-        return 'Planifiée';
-      default:
-        return status;
-    }
+  const handleClose = () => {
+    setSelectedMission(null);
   };
 
-  const getMissionIcon = (type: Mission['type']) => {
+  const filteredMissions = missions.filter(mission => {
+    const matchesSearch = mission.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         mission.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || mission.status === statusFilter;
+    const matchesType = typeFilter === 'all' || mission.type === typeFilter;
+    
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  const getMissionIcon = (type: MissionType) => {
     switch (type) {
       case 'rover':
         return <ExploreIcon />;
@@ -92,12 +94,51 @@ const Missions: React.FC = () => {
     }
   };
 
+  const getStatusColor = (status: MissionStatus) => {
+    switch (status) {
+      case 'active':
+        return 'success';
+      case 'completed':
+        return 'info';
+      case 'planned':
+        return 'warning';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusLabel = (status: MissionStatus) => {
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'completed':
+        return 'Terminée';
+      case 'planned':
+        return 'Planifiée';
+      default:
+        return status;
+    }
+  };
+
+  const getTypeLabel = (type: MissionType) => {
+    switch (type) {
+      case 'rover':
+        return 'Rover';
+      case 'satellite':
+        return 'Satellite';
+      case 'probe':
+        return 'Sonde';
+      case 'telescope':
+        return 'Télescope';
+      default:
+        return type;
+    }
+  };
+
   if (loading) {
     return (
       <Container>
-        <Box sx={{ width: '100%', mt: 4 }}>
-          <LinearProgress />
-        </Box>
+        <LinearProgress />
       </Container>
     );
   }
@@ -105,30 +146,85 @@ const Missions: React.FC = () => {
   if (error) {
     return (
       <Container>
-        <Alert severity="error" sx={{ mt: 4 }}>
-          {error}
-        </Alert>
+        <Alert severity="error">{error}</Alert>
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h2" component="h1" gutterBottom align="center">
-          Missions Spatiales
-        </Typography>
+    <Container sx={{ py: 4 }}>
+      <Typography variant="h3" component="h1" gutterBottom align="center">
+        Missions Spatiales
+      </Typography>
 
+      {/* Filtres */}
+      <Paper sx={{ p: 2, mb: 4 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <TextField
+            label="Rechercher une mission"
+            variant="outlined"
+            fullWidth
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            InputProps={{
+              startAdornment: <SearchIcon sx={{ color: 'action.active', mr: 1 }} />,
+              endAdornment: searchQuery && (
+                <IconButton size="small" onClick={() => setSearchQuery('')}>
+                  <ClearIcon />
+                </IconButton>
+              ),
+            }}
+          />
+          
+          <FormControl fullWidth>
+            <InputLabel>Statut</InputLabel>
+            <Select
+              value={statusFilter}
+              label="Statut"
+              onChange={(e) => setStatusFilter(e.target.value as MissionStatus | 'all')}
+            >
+              <MenuItem value="all">Tous les statuts</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="completed">Terminée</MenuItem>
+              <MenuItem value="planned">Planifiée</MenuItem>
+            </Select>
+          </FormControl>
+
+          <FormControl fullWidth>
+            <InputLabel>Type</InputLabel>
+            <Select
+              value={typeFilter}
+              label="Type"
+              onChange={(e) => setTypeFilter(e.target.value as MissionType | 'all')}
+            >
+              <MenuItem value="all">Tous les types</MenuItem>
+              <MenuItem value="rover">Rover</MenuItem>
+              <MenuItem value="satellite">Satellite</MenuItem>
+              <MenuItem value="probe">Sonde</MenuItem>
+              <MenuItem value="telescope">Télescope</MenuItem>
+            </Select>
+          </FormControl>
+        </Stack>
+      </Paper>
+
+      {/* Résultats */}
+      {filteredMissions.length === 0 ? (
+        <Alert severity="info">
+          Aucune mission ne correspond à vos critères de recherche.
+        </Alert>
+      ) : (
         <Grid container spacing={4}>
-          {missions.map((mission) => (
-            <Grid item xs={12} md={6} lg={4} key={mission.id}>
+          {filteredMissions.map((mission) => (
+            <Grid item key={mission.id} xs={12} sm={6} md={4}>
               <Card 
                 sx={{ 
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   transition: 'transform 0.2s',
-                  '&:hover': { transform: 'scale(1.02)' }
+                  '&:hover': {
+                    transform: 'scale(1.02)',
+                  },
                 }}
               >
                 <CardMedia
@@ -138,24 +234,25 @@ const Missions: React.FC = () => {
                   alt={mission.name}
                   sx={{ 
                     objectFit: 'cover',
-                    bgcolor: 'black' // Fond noir pour les images en chargement
+                    bgcolor: 'black'
                   }}
                   onError={(e: any) => {
-                    // Image de fallback en cas d'erreur
                     e.target.src = 'https://www.nasa.gov/wp-content/uploads/2023/03/nasa-logo-web-rgb.png';
                   }}
                 />
                 <CardContent sx={{ flexGrow: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    {getMissionIcon(mission.type)}
-                    <Typography variant="h5" component="div" sx={{ ml: 1 }}>
+                    <Tooltip title={getTypeLabel(mission.type)}>
+                      <Box sx={{ mr: 2 }}>{getMissionIcon(mission.type)}</Box>
+                    </Tooltip>
+                    <Typography gutterBottom variant="h5" component="div">
                       {mission.name}
                     </Typography>
                   </Box>
                   <Typography variant="body2" color="text.secondary" paragraph>
                     {mission.description}
                   </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 'auto' }}>
                     <Chip
                       label={getStatusLabel(mission.status)}
                       color={getStatusColor(mission.status)}
@@ -164,17 +261,19 @@ const Missions: React.FC = () => {
                     {mission.launchDate && (
                       <Chip
                         label={`Lancée le ${new Date(mission.launchDate).toLocaleDateString()}`}
-                        variant="outlined"
                         size="small"
+                        variant="outlined"
                       />
                     )}
                   </Box>
                 </CardContent>
                 <CardActions>
-                  <Button 
-                    size="small" 
+                  <Button
+                    size="small"
                     color="primary"
                     onClick={() => setSelectedMission(mission)}
+                    startIcon={<ExploreIcon />}
+                    fullWidth
                   >
                     En savoir plus
                   </Button>
@@ -183,45 +282,42 @@ const Missions: React.FC = () => {
             </Grid>
           ))}
         </Grid>
-      </Box>
+      )}
 
+      {/* Dialog des détails */}
       <Dialog
         open={!!selectedMission}
-        onClose={() => setSelectedMission(null)}
+        onClose={handleClose}
         maxWidth="md"
         fullWidth
       >
         {selectedMission && (
           <>
             <DialogTitle>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 {getMissionIcon(selectedMission.type)}
-                <Typography variant="h6" sx={{ ml: 1 }}>
-                  {selectedMission.name}
-                </Typography>
+                {selectedMission.name}
               </Box>
             </DialogTitle>
             <DialogContent dividers>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" gutterBottom>
-                  Objectifs de la mission
-                </Typography>
-                <List>
-                  {selectedMission.details.objectives.map((objective, index) => (
-                    <ListItem key={index}>
-                      <ListItemIcon>
-                        <RadioButtonUncheckedIcon color="primary" />
-                      </ListItemIcon>
-                      <ListItemText primary={objective} />
-                    </ListItem>
-                  ))}
-                </List>
-              </Box>
+              <Typography variant="h6" gutterBottom>
+                Objectifs
+              </Typography>
+              <List>
+                {selectedMission.details.objectives.map((objective, index) => (
+                  <ListItem key={index}>
+                    <ListItemIcon>
+                      <CheckCircleIcon color="success" />
+                    </ListItemIcon>
+                    <ListItemText primary={objective} />
+                  </ListItem>
+                ))}
+              </List>
 
               {selectedMission.details.technology && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="h6" gutterBottom>
-                    Technologies utilisées
+                <>
+                  <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                    Technologies
                   </Typography>
                   <List>
                     {selectedMission.details.technology.map((tech, index) => (
@@ -233,29 +329,24 @@ const Missions: React.FC = () => {
                       </ListItem>
                     ))}
                   </List>
-                </Box>
+                </>
               )}
 
-              {selectedMission.details.achievements && (
-                <Box>
+              {selectedMission.details.location && (
+                <Box sx={{ mt: 2 }}>
                   <Typography variant="h6" gutterBottom>
-                    Réalisations
+                    Localisation
                   </Typography>
-                  <List>
-                    {selectedMission.details.achievements.map((achievement, index) => (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          <CheckCircleIcon color="success" />
-                        </ListItemIcon>
-                        <ListItemText primary={achievement} />
-                      </ListItem>
-                    ))}
-                  </List>
+                  <Typography>
+                    {selectedMission.details.location}
+                  </Typography>
                 </Box>
               )}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setSelectedMission(null)}>Fermer</Button>
+              <Button onClick={handleClose} color="primary">
+                Fermer
+              </Button>
             </DialogActions>
           </>
         )}

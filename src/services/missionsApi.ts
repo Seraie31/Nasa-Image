@@ -1,13 +1,16 @@
 import axios from 'axios';
 
+export type MissionType = 'rover' | 'satellite' | 'probe' | 'telescope';
+export type MissionStatus = 'active' | 'completed' | 'planned';
+
 export interface Mission {
   id: string;
   name: string;
   description: string;
-  status: 'active' | 'completed' | 'planned';
+  status: MissionStatus;
   launchDate?: string;
   endDate?: string;
-  type: 'rover' | 'satellite' | 'probe' | 'telescope';
+  type: MissionType;
   imageUrl: string;
   details: {
     objectives: string[];
@@ -82,10 +85,101 @@ const missions: Mission[] = [
         'Station spatiale lunaire Gateway'
       ]
     }
+  },
+  {
+    id: 'curiosity',
+    name: 'Mars Curiosity Rover',
+    description: 'Le rover Curiosity explore le cratère Gale sur Mars pour étudier le climat et la géologie martienne.',
+    status: 'active',
+    launchDate: '2011-11-26',
+    type: 'rover',
+    imageUrl: 'https://mars.nasa.gov/system/news_items/main_images/8944_1-curiosity-banner.jpg',
+    details: {
+      objectives: [
+        'Étudier le climat et la géologie de Mars',
+        'Évaluer si Mars a pu abriter la vie',
+        'Étudier le rayonnement à la surface de Mars'
+      ],
+      location: 'Cratère Gale, Mars',
+      technology: [
+        'ChemCam - Analyse chimique par laser',
+        'SAM - Analyse des composés organiques',
+        'RAD - Détection des radiations'
+      ]
+    }
+  },
+  {
+    id: 'hubble',
+    name: 'Télescope Spatial Hubble',
+    description: 'Le télescope spatial Hubble a révolutionné notre compréhension du cosmos depuis plus de 30 ans.',
+    status: 'active',
+    launchDate: '1990-04-24',
+    type: 'telescope',
+    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/hubble_30th_anniversary.jpg',
+    details: {
+      objectives: [
+        'Observer les galaxies lointaines',
+        'Étudier les planètes du système solaire',
+        'Capturer des images emblématiques du cosmos'
+      ],
+      technology: [
+        'Miroir principal de 2,4 mètres',
+        'Caméras à haute résolution',
+        'Spectromètres'
+      ]
+    }
+  },
+  {
+    id: 'voyager1',
+    name: 'Voyager 1',
+    description: 'La sonde spatiale Voyager 1 est l\'objet créé par l\'homme le plus éloigné de la Terre, explorant l\'espace interstellaire.',
+    status: 'completed',
+    launchDate: '1977-09-05',
+    type: 'probe',
+    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/voyager_1.jpg',
+    details: {
+      objectives: [
+        'Explorer Jupiter et Saturne',
+        'Étudier l\'espace interstellaire',
+        'Transporter le Golden Record'
+      ],
+      technology: [
+        'Instruments de mesure du plasma',
+        'Caméras',
+        'Antenne à grand gain'
+      ],
+      achievements: [
+        'Premier objet humain à quitter l\'héliosphère',
+        'Photos détaillées de Jupiter et Saturne',
+        'Plus de 45 ans de fonctionnement'
+      ]
+    }
+  },
+  {
+    id: 'dragonfly',
+    name: 'Dragonfly',
+    description: 'Future mission d\'exploration de Titan, la plus grande lune de Saturne, utilisant un drone à propulsion nucléaire.',
+    status: 'planned',
+    launchDate: '2027-06-01',
+    type: 'probe',
+    imageUrl: 'https://www.nasa.gov/sites/default/files/thumbnails/image/dragonfly-titan.jpg',
+    details: {
+      objectives: [
+        'Explorer la surface de Titan',
+        'Étudier la chimie prébiotique',
+        'Rechercher des signes de vie potentielle'
+      ],
+      location: 'Titan, lune de Saturne',
+      technology: [
+        'Drone à propulsion nucléaire',
+        'Instruments d\'analyse chimique',
+        'Caméras panoramiques'
+      ]
+    }
   }
 ];
 
-export const getMissions = async (): Promise<Mission[]> => {
+export const getMissions = (): Promise<Mission[]> => {
   // Simulation d'une requête API
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -94,7 +188,7 @@ export const getMissions = async (): Promise<Mission[]> => {
   });
 };
 
-export const getMissionById = async (id: string): Promise<Mission | undefined> => {
+export const getMissionById = (id: string): Promise<Mission | undefined> => {
   // Simulation d'une requête API
   return new Promise((resolve) => {
     setTimeout(() => {
