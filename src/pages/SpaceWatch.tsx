@@ -21,7 +21,13 @@ import {
   Tab,
   Stack,
   Divider,
-  CardMedia
+  CardMedia,
+  TableContainer,
+  Table,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableBody,
 } from '@mui/material';
 import {
   getNeoFeed,
@@ -36,6 +42,9 @@ import WarningIcon from '@mui/icons-material/Warning';
 import SpeedIcon from '@mui/icons-material/Speed';
 import ExploreIcon from '@mui/icons-material/Explore';
 import DateRangeIcon from '@mui/icons-material/DateRange';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import StraightenIcon from '@mui/icons-material/Straighten';
+import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -199,6 +208,7 @@ const SpaceWatch: React.FC = () => {
   const [selectedNeo, setSelectedNeo] = useState<NearEarthObject | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [neoImages, setNeoImages] = useState<Record<string, string>>({});
+  const [view, setView] = useState('timeline');
 
   useEffect(() => {
     const fetchNeoData = async () => {
@@ -274,156 +284,207 @@ const SpaceWatch: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h3" component="h1" gutterBottom align="center">
-        Space Watch
-      </Typography>
-      <Typography variant="subtitle1" color="text.secondary" align="center" paragraph>
-        Surveillance des objets géocroiseurs (NEO) pour les 7 prochains jours
-      </Typography>
+      <Box sx={{ p: 3 }}>
+        <Typography 
+          variant="h1" 
+          component="h1" 
+          gutterBottom 
+          align="center"
+          sx={{
+            fontSize: { xs: '2rem', md: '3rem' },
+            mb: 4,
+            background: theme.palette.gradients.primary,
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
+          Space Watch
+        </Typography>
+        <Typography 
+          variant="subtitle1" 
+          gutterBottom 
+          align="center" 
+          color="text.secondary"
+          sx={{ mb: 6 }}
+        >
+          Surveillance des objets géocroiseurs (NEO) pour les 7 prochains jours
+        </Typography>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={tabValue} onChange={handleTabChange} centered>
-          <Tab label="Timeline" />
-          <Tab label="Liste" />
-        </Tabs>
-      </Box>
-
-      <TabPanel value={tabValue} index={0}>
-        <Box sx={{ position: 'relative' }}>
-          <Box sx={{
-            position: 'absolute',
-            left: '50%',
-            top: 0,
-            bottom: 0,
-            width: 2,
-            bgcolor: 'divider',
-            transform: 'translateX(-50%)'
-          }} />
-          <Stack spacing={2}>
-            {neoData.map((neo, index) => (
-              <TimelineItem
-                key={neo.id}
-                neo={neo}
-                onClick={() => handleNeoClick(neo)}
-                isLeft={index % 2 === 0}
-                imageUrl={neoImages[neo.id]}
-              />
-            ))}
-          </Stack>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
+          <Tabs
+            value={view}
+            onChange={(_, newValue) => setView(newValue)}
+            sx={{
+              '& .MuiTabs-indicator': {
+                background: theme.palette.gradients.primary,
+              },
+            }}
+          >
+            <Tab 
+              label="Timeline" 
+              value="timeline"
+              sx={{
+                color: theme.palette.text.secondary,
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                },
+              }}
+            />
+            <Tab 
+              label="Liste" 
+              value="list"
+              sx={{
+                color: theme.palette.text.secondary,
+                '&.Mui-selected': {
+                  color: theme.palette.primary.main,
+                },
+              }}
+            />
+          </Tabs>
         </Box>
-      </TabPanel>
 
-      <TabPanel value={tabValue} index={1}>
-        <Grid container spacing={3}>
-          {neoData.map((neo) => {
-            const dangerLevel = calculateDangerLevel(neo);
-            const approach = neo.close_approach_data[0];
-            const avgDiameter = (
-              neo.estimated_diameter.kilometers.estimated_diameter_min +
-              neo.estimated_diameter.kilometers.estimated_diameter_max
-            ) / 2;
-
-            return (
+        {view === 'timeline' ? (
+          <Grid container spacing={3}>
+            {neoData.map((neo) => (
               <Grid item xs={12} sm={6} md={4} key={neo.id}>
-                <Card
+                <Card 
+                  className="slide-up card-hover"
                   sx={{
                     height: '100%',
-                    cursor: 'pointer',
-                    borderLeft: neo.is_potentially_hazardous_asteroid ? '4px solid #f44336' : 'none',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      transition: 'transform 0.2s'
-                    }
+                    background: theme.palette.background.paper,
+                    backdropFilter: 'blur(10px)',
                   }}
-                  onClick={() => handleNeoClick(neo)}
                 >
-                  {neoImages[neo.id] && (
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={neoImages[neo.id]}
-                      alt={neo.name}
-                      sx={{
-                        objectFit: 'cover',
-                        opacity: 0.8,
-                        transition: 'opacity 0.3s',
-                        '&:hover': {
-                          opacity: 1
-                        }
-                      }}
-                    />
-                  )}
                   <CardContent>
-                    <Typography variant="h6" component="div" gutterBottom>
-                      {neo.name.replace('(', '').replace(')', '')}
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Rating
-                        value={dangerLevel}
-                        readOnly
-                        max={5}
-                        icon={<WarningIcon color="error" />}
-                        emptyIcon={<WarningIcon color="disabled" />}
-                      />
-                      {neo.is_potentially_hazardous_asteroid && (
-                        <Chip
-                          label="Dangereux"
-                          color="error"
-                          size="small"
-                          sx={{ ml: 1 }}
-                        />
-                      )}
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="h6" gutterBottom>
+                        {neo.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
+                        {[...Array(5)].map((_, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              width: 20,
+                              height: 20,
+                              borderRadius: '4px',
+                              backgroundColor: index < calculateDangerLevel(neo) 
+                                ? theme.palette.status.error
+                                : theme.palette.background.paper,
+                              border: `1px solid ${theme.palette.border.light}`,
+                            }}
+                          />
+                        ))}
+                      </Box>
                     </Box>
 
-                    <Typography variant="body2" color="text.secondary" paragraph>
-                      <DateRangeIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                      {new Date(approach.close_approach_date).toLocaleDateString()}
-                    </Typography>
-
-                    <Typography variant="body2" paragraph>
-                      <SpeedIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                      {formatVelocity(approach.relative_velocity.kilometers_per_hour)} km/h
-                    </Typography>
-
-                    <Typography variant="body2" paragraph>
-                      <ExploreIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
-                      {formatDistance(approach.miss_distance.lunar, 'lunar')} distances lunaires
-                    </Typography>
-
-                    <Typography variant="body2" paragraph>
-                      <Box component="span" sx={{
-                        display: 'inline-flex',
+                    <Stack spacing={2}>
+                      <Box sx={{ 
+                        display: 'flex', 
                         alignItems: 'center',
-                        mr: 1,
-                        width: 20,
-                        height: 20,
-                        borderRadius: '50%',
-                        bgcolor: 'background.paper',
-                        border: '2px solid',
-                        borderColor: 'text.secondary'
-                      }} />
-                      {formatDistance(String(avgDiameter), 'km')} km de diamètre
-                    </Typography>
+                        p: 1,
+                        borderRadius: '8px',
+                        background: `${theme.palette.primary.main}0A`,
+                      }}>
+                        <CalendarTodayIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                        <Typography>{new Date(neo.close_approach_data[0].close_approach_date).toLocaleDateString()}</Typography>
+                      </Box>
 
-                    <Box sx={{ mt: 2 }}>
-                      {neo.is_potentially_hazardous_asteroid && (
-                        <Chip
-                          label="Potentiellement dangereux"
-                          color="error"
-                          size="small"
-                          sx={{ mr: 1 }}
-                        />
-                      )}
-                    </Box>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        p: 1,
+                        borderRadius: '8px',
+                        background: `${theme.palette.primary.main}0A`,
+                      }}>
+                        <SpeedIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                        <Typography>{formatVelocity(neo.close_approach_data[0].relative_velocity.kilometers_per_hour)} km/h</Typography>
+                      </Box>
+
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        p: 1,
+                        borderRadius: '8px',
+                        background: `${theme.palette.primary.main}0A`,
+                      }}>
+                        <StraightenIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                        <Typography>{formatDistance(neo.close_approach_data[0].miss_distance.lunar, 'lunar')} distances lunaires</Typography>
+                      </Box>
+
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        p: 1,
+                        borderRadius: '8px',
+                        background: `${theme.palette.primary.main}0A`,
+                      }}>
+                        <RadioButtonUncheckedIcon sx={{ mr: 1, color: theme.palette.primary.main }} />
+                        <Typography>{formatDistance(String((neo.estimated_diameter.kilometers.estimated_diameter_min + neo.estimated_diameter.kilometers.estimated_diameter_max) / 2), 'km')} km de diamètre</Typography>
+                      </Box>
+                    </Stack>
                   </CardContent>
                 </Card>
               </Grid>
-            );
-          })}
-        </Grid>
-      </TabPanel>
-
+            ))}
+          </Grid>
+        ) : (
+          <TableContainer 
+            component={Paper}
+            sx={{
+              background: theme.palette.background.paper,
+              backdropFilter: 'blur(10px)',
+            }}
+          >
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>Nom</TableCell>
+                  <TableCell sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>Date</TableCell>
+                  <TableCell sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>Vitesse</TableCell>
+                  <TableCell sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>Distance</TableCell>
+                  <TableCell sx={{ color: theme.palette.primary.main, fontWeight: 600 }}>Risque</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {neoData.map((neo) => (
+                  <TableRow 
+                    key={neo.id}
+                    sx={{
+                      '&:hover': {
+                        background: `${theme.palette.primary.main}0A`,
+                      },
+                    }}
+                  >
+                    <TableCell>{neo.name}</TableCell>
+                    <TableCell>{new Date(neo.close_approach_data[0].close_approach_date).toLocaleDateString()}</TableCell>
+                    <TableCell>{formatVelocity(neo.close_approach_data[0].relative_velocity.kilometers_per_hour)} km/h</TableCell>
+                    <TableCell>{formatDistance(neo.close_approach_data[0].miss_distance.lunar, 'lunar')} DL</TableCell>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        {[...Array(5)].map((_, index) => (
+                          <Box
+                            key={index}
+                            sx={{
+                              width: 16,
+                              height: 16,
+                              borderRadius: '4px',
+                              backgroundColor: index < calculateDangerLevel(neo) 
+                                ? theme.palette.status.error
+                                : theme.palette.background.paper,
+                              border: `1px solid ${theme.palette.border.light}`,
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Box>
       <Dialog
         open={!!selectedNeo}
         onClose={handleCloseDialog}

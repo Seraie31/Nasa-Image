@@ -141,17 +141,35 @@ const EarthView: React.FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h3" component="h1" gutterBottom align="center">
+      <Typography 
+        variant="h1" 
+        component="h1" 
+        gutterBottom 
+        align="center"
+        sx={{
+          fontSize: { xs: '2rem', md: '3rem' },
+          mb: 4,
+          background: 'linear-gradient(45deg, #60A5FA, #A78BFA)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+        }}
+      >
         Vue de la Terre
       </Typography>
-      <Typography variant="subtitle1" gutterBottom align="center" color="text.secondary">
+      <Typography 
+        variant="subtitle1" 
+        gutterBottom 
+        align="center" 
+        color="text.secondary"
+        sx={{ mb: 6 }}
+      >
         Observez notre planète depuis l'espace. Images satellites en temps réel.
       </Typography>
 
       {images.length > 0 && (
         <Grid container spacing={3} sx={{ mt: 2 }}>
           <Grid item xs={12} md={8}>
-            <Card>
+            <Card className="glow">
               <Box sx={{ 
                 position: 'relative',
                 height: { xs: '300px', sm: '400px', md: '500px' },
@@ -159,26 +177,33 @@ const EarthView: React.FC = () => {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                background: 'rgba(0, 0, 0, 0.2)',
+                borderRadius: '16px',
               }}>
                 <CardMedia
                   component="img"
                   image={currentImage.image}
                   alt={currentImage.caption}
+                  className={loading ? 'blur-load' : 'blur-load loaded'}
                   sx={{ 
                     height: '100%',
                     width: '100%',
                     objectFit: 'contain',
                     maxHeight: '100%',
-                    maxWidth: '100%'
+                    maxWidth: '100%',
+                    transition: 'all 0.3s ease-in-out',
                   }}
                 />
               </Box>
-              <CardContent>
+              <CardContent sx={{ 
+                background: 'rgba(17, 24, 39, 0.8)',
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+              }}>
                 <Typography variant="body2" color="text.secondary">
                   {currentImage.caption}
                 </Typography>
-                <Typography variant="caption" display="block">
+                <Typography variant="caption" display="block" sx={{ mt: 1 }}>
                   Date: {new Date(currentImage.date).toLocaleString()}
                 </Typography>
               </CardContent>
@@ -186,23 +211,69 @@ const EarthView: React.FC = () => {
           </Grid>
 
           <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="h6" gutterBottom>
+            <Paper className="slide-up" sx={{ 
+              p: 3, 
+              background: 'rgba(17, 24, 39, 0.8)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}>
+              <Typography variant="h6" gutterBottom sx={{ 
+                color: 'primary.light',
+                borderBottom: '2px solid',
+                borderImage: 'linear-gradient(45deg, #60A5FA, #A78BFA) 1',
+                pb: 1,
+              }}>
                 Contrôles
               </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mb: 2 }}>
-                <IconButton onClick={handlePrevImage}>
+              <Box sx={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                gap: 2, 
+                mb: 3,
+                mt: 2,
+              }}>
+                <IconButton 
+                  onClick={handlePrevImage}
+                  className="glow"
+                  sx={{ 
+                    background: 'rgba(96, 165, 250, 0.1)',
+                    '&:hover': {
+                      background: 'rgba(96, 165, 250, 0.2)',
+                    }
+                  }}
+                >
                   <NavigateBeforeIcon />
                 </IconButton>
-                <IconButton onClick={handlePlayPause}>
+                <IconButton 
+                  onClick={handlePlayPause}
+                  className="glow"
+                  sx={{ 
+                    background: 'rgba(96, 165, 250, 0.1)',
+                    '&:hover': {
+                      background: 'rgba(96, 165, 250, 0.2)',
+                    }
+                  }}
+                >
                   {isPlaying ? <PauseIcon /> : <PlayArrowIcon />}
                 </IconButton>
-                <IconButton onClick={handleNextImage}>
+                <IconButton 
+                  onClick={handleNextImage}
+                  className="glow"
+                  sx={{ 
+                    background: 'rgba(96, 165, 250, 0.1)',
+                    '&:hover': {
+                      background: 'rgba(96, 165, 250, 0.2)',
+                    }
+                  }}
+                >
                   <NavigateNextIcon />
                 </IconButton>
               </Box>
               <Box sx={{ px: 2 }}>
-                <Typography gutterBottom>Vitesse de lecture</Typography>
+                <Typography gutterBottom color="text.secondary">
+                  Vitesse de lecture
+                </Typography>
                 <Slider
                   value={2000 - playbackSpeed}
                   onChange={handleSpeedChange}
@@ -212,23 +283,58 @@ const EarthView: React.FC = () => {
                   marks
                   valueLabelDisplay="auto"
                   valueLabelFormat={(value) => `${((2000 - value) / 1000).toFixed(1)}s`}
+                  sx={{
+                    '& .MuiSlider-thumb': {
+                      background: 'linear-gradient(45deg, #60A5FA, #A78BFA)',
+                    },
+                    '& .MuiSlider-track': {
+                      background: 'linear-gradient(45deg, #60A5FA, #A78BFA)',
+                    },
+                  }}
                 />
               </Box>
             </Paper>
 
-            <Paper sx={{ p: 2, mt: 2 }}>
-              <Typography variant="h6" gutterBottom>
+            <Paper className="slide-up" sx={{ 
+              p: 3, 
+              mt: 2,
+              background: 'rgba(17, 24, 39, 0.8)',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+            }}>
+              <Typography variant="h6" gutterBottom sx={{ 
+                color: 'primary.light',
+                borderBottom: '2px solid',
+                borderImage: 'linear-gradient(45deg, #60A5FA, #A78BFA) 1',
+                pb: 1,
+              }}>
                 Informations
               </Typography>
-              <Stack spacing={1}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <PublicIcon />
+              <Stack spacing={2}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 1,
+                  p: 1,
+                  borderRadius: '8px',
+                  background: 'rgba(96, 165, 250, 0.1)',
+                }}>
+                  <PublicIcon sx={{ color: 'primary.light' }} />
                   <Typography>
                     Coordonnées: {currentImage.coords.centroid_coordinates.lat.toFixed(2)}°,{' '}
                     {currentImage.coords.centroid_coordinates.lon.toFixed(2)}°
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary">
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary"
+                  sx={{
+                    p: 1,
+                    borderRadius: '8px',
+                    background: 'rgba(96, 165, 250, 0.05)',
+                  }}
+                >
                   Version: {currentImage.version}
                 </Typography>
               </Stack>

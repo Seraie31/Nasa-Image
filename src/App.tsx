@@ -12,6 +12,7 @@ const Explore = React.lazy(() => import('./pages/Explore'));
 const Missions = React.lazy(() => import('./pages/Missions'));
 const ImageDetail = React.lazy(() => import('./pages/ImageDetail'));
 const SpaceWatch = React.lazy(() => import('./pages/SpaceWatch'));
+const EarthView = React.lazy(() => import('./pages/EarthView'));
 
 function App() {
   return (
@@ -35,6 +36,7 @@ function App() {
                 <Route path="explore" element={<Explore />} />
                 <Route path="missions" element={<Missions />} />
                 <Route path="space-watch" element={<SpaceWatch />} />
+                <Route path="earth-view" element={<EarthView />} />
                 <Route path="image/:id" element={<ImageDetail />} />
               </Route>
             </Routes>

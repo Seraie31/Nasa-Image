@@ -198,35 +198,133 @@ const Home: React.FC = () => {
         </Divider>
 
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
+          <Grid item xs={12}>
             <Card 
+              className="glow"
               sx={{ 
-                height: '100%', 
-                cursor: 'pointer', 
-                transition: 'transform 0.2s', 
-                '&:hover': { transform: 'scale(1.02)' } 
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(45deg, rgba(96, 165, 250, 0.1), rgba(167, 139, 250, 0.1))',
+                  zIndex: 0,
+                }
               }}
-              onClick={() => navigate('/explore')}
             >
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <ExploreIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
-                  <Typography gutterBottom variant="h5" component="div">
-                    Galerie d'Images
-                  </Typography>
+              <CardContent sx={{ position: 'relative', zIndex: 1 }}>
+                <Box sx={{ 
+                  display: 'flex', 
+                  flexDirection: { xs: 'column', md: 'row' },
+                  alignItems: 'center',
+                  gap: 4
+                }}>
+                  <Box sx={{ flex: 1, textAlign: { xs: 'center', md: 'left' } }}>
+                    <Typography 
+                      variant="h1" 
+                      gutterBottom
+                      sx={{
+                        fontSize: { xs: '2rem', md: '3rem' },
+                        fontWeight: 700,
+                        background: 'linear-gradient(45deg, #60A5FA, #A78BFA)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      }}
+                    >
+                      Explorez l'Univers
+                    </Typography>
+                    <Typography 
+                      variant="h5" 
+                      color="text.secondary"
+                      sx={{ mb: 3 }}
+                    >
+                      Découvrez les merveilles de l'espace à travers les yeux de la NASA
+                    </Typography>
+                  </Box>
+                  {imageOfDay && (
+                    <Box 
+                      className="float"
+                      sx={{ 
+                        flex: 1,
+                        maxWidth: '500px',
+                        width: '100%',
+                        position: 'relative'
+                      }}
+                    >
+                      <Card
+                        sx={{
+                          background: 'transparent',
+                          boxShadow: 'none',
+                          '&:hover': {
+                            transform: 'none',
+                          }
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          image={imageOfDay.url}
+                          alt={imageOfDay.title}
+                          sx={{
+                            borderRadius: '16px',
+                            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                            transition: 'transform 0.3s ease-in-out',
+                            '&:hover': {
+                              transform: 'scale(1.02)',
+                            }
+                          }}
+                        />
+                      </Card>
+                    </Box>
+                  )}
                 </Box>
-                <Typography variant="body2" color="text.secondary" paragraph>
-                  Explorez notre vaste collection d'images spatiales capturées par la NASA.
-                  Des nébuleuses aux galaxies lointaines, découvrez les merveilles de l'univers.
-                </Typography>
-                <Button 
-                  variant="contained" 
-                  color="primary" 
-                  fullWidth
-                  startIcon={<ExploreIcon />}
-                >
-                  Explorer
-                </Button>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          <Grid item xs={12} md={4}>
+            <Card className="slide-up card-hover">
+              <CardContent sx={{ position: 'relative', overflow: 'hidden' }}>
+                <Box sx={{ 
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background: 'linear-gradient(45deg, rgba(96, 165, 250, 0.05), rgba(167, 139, 250, 0.05))',
+                  zIndex: 0
+                }} />
+                <Box sx={{ position: 'relative', zIndex: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <ExploreIcon sx={{ fontSize: 40, mr: 2, color: 'primary.main' }} />
+                    <Typography variant="h5" component="div">
+                      Galerie d'Images
+                    </Typography>
+                  </Box>
+                  <Typography variant="body2" color="text.secondary" paragraph>
+                    Explorez notre vaste collection d'images spatiales capturées par la NASA.
+                    Des nébuleuses aux galaxies lointaines, découvrez les merveilles de l'univers.
+                  </Typography>
+                  <Button 
+                    component={RouterLink}
+                    to="/explore"
+                    variant="contained"
+                    fullWidth
+                    startIcon={<ExploreIcon />}
+                    sx={{
+                      mt: 2,
+                      background: 'linear-gradient(45deg, #60A5FA, #A78BFA)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #3B82F6, #8B5CF6)',
+                      }
+                    }}
+                  >
+                    Explorer
+                  </Button>
+                </Box>
               </CardContent>
             </Card>
           </Grid>

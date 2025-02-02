@@ -107,3 +107,122 @@
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes glow {
+  0% {
+    box-shadow: 0 0 5px rgba(96, 165, 250, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(96, 165, 250, 0.6);
+  }
+  100% {
+    box-shadow: 0 0 5px rgba(96, 165, 250, 0.2);
+  }
+}
+
+@keyframes fadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+.fade-scale {
+  animation: fadeScale 0.3s ease-out forwards;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+/* Effet de parallaxe pour le fond étoilé */
+.parallax {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Effet de flou progressif */
+.blur-load {
+  filter: blur(10px);
+  transition: filter 0.3s ease-out;
+}
+
+.blur-load.loaded {
+  filter: blur(0);
+}
+
+/* Effet de transition pour les cartes */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Animation pour le chargement des images */
+.image-loading {
+  position: relative;
+  overflow: hidden;
+}
+
+.image-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

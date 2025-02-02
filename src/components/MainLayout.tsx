@@ -14,6 +14,7 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import ExploreIcon from '@mui/icons-material/Explore';
 import RadarIcon from '@mui/icons-material/Radar';
 import HomeIcon from '@mui/icons-material/Home';
+import PublicIcon from '@mui/icons-material/Public';
 
 const MainLayout: React.FC = () => {
   const theme = useTheme();
@@ -25,7 +26,8 @@ const MainLayout: React.FC = () => {
     { path: '/', label: 'Accueil', icon: <HomeIcon /> },
     { path: '/explore', label: 'Explorer', icon: <ExploreIcon /> },
     { path: '/missions', label: 'Missions', icon: <RocketLaunchIcon /> },
-    { path: '/space-watch', label: 'Space Watch', icon: <RadarIcon /> }
+    { path: '/space-watch', label: 'Space Watch', icon: <RadarIcon /> },
+    { path: '/earth-view', label: 'Vue de la Terre', icon: <PublicIcon /> }
   ];
 
   return (

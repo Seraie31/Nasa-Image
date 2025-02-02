@@ -1,22 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  TextField, 
-  Grid, 
-  Card, 
-  CardMedia, 
-  CardContent, 
-  Typography,
+import {
+  Container,
   Box,
-  IconButton,
+  Typography,
+  TextField,
   InputAdornment,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  Dialog,
+  DialogContent,
+  DialogActions,
+  Button,
+  Chip,
   Tabs,
   Tab,
-  Chip,
-  CircularProgress
+  CircularProgress,
+  IconButton
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import SearchIcon from '@mui/icons-material/Search';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import { searchImages } from '../services/nasaApi';
 import { NasaImage } from '../models/types';
 
@@ -35,6 +40,7 @@ const Explore: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(0);
   const navigate = useNavigate();
+  const [selectedImage, setSelectedImage] = useState<NasaImage | null>(null);
 
   const handleSearch = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -57,44 +63,43 @@ const Explore: React.FC = () => {
     setSearchQuery('');
   };
 
+  const handleImageClick = (image: NasaImage) => {
+    setSelectedImage(image);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedImage(null);
+  };
+
   useEffect(() => {
     handleSearch();
   }, [selectedCategory]);
 
   return (
     <Container maxWidth="lg">
-      <Box sx={{ my: 4 }}>
-        <Typography variant="h3" component="h1" gutterBottom align="center">
+      <Box sx={{ p: 3 }}>
+        <Typography 
+          variant="h1" 
+          component="h1" 
+          gutterBottom 
+          align="center"
+          sx={{
+            fontSize: { xs: '2rem', md: '3rem' },
+            mb: 4,
+            background: 'linear-gradient(90deg, #2196F3 0%, #21CBF7 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
           Explorer les Images NASA
         </Typography>
 
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 4 }}>
-          <Tabs 
-            value={selectedCategory} 
-            onChange={handleCategoryChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            allowScrollButtonsMobile
-          >
-            {DEFAULT_CATEGORIES.map((category, index) => (
-              <Tab 
-                key={category.query} 
-                label={category.label}
-                value={index}
-              />
-            ))}
-          </Tabs>
-        </Box>
-
-        <Box 
-          component="form" 
-          onSubmit={handleSearch}
-          sx={{ 
-            maxWidth: 600, 
-            margin: '0 auto', 
-            mb: 4 
-          }}
-        >
+        <Box sx={{ 
+          maxWidth: 800, 
+          mx: 'auto', 
+          mb: 6,
+          position: 'relative',
+        }}>
           <TextField
             fullWidth
             variant="outlined"
@@ -102,81 +107,181 @@ const Explore: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton type="submit" edge="end">
-                    <SearchIcon />
-                  </IconButton>
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon sx={{ color: 'rgba(0, 0, 0, 0.6)' }} />
                 </InputAdornment>
               ),
+              sx: {
+                background: '#fff',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '12px',
+                '& fieldset': {
+                  border: '1px solid rgba(0, 0, 0, 0.2)',
+                },
+                '&:hover fieldset': {
+                  borderColor: 'rgba(33, 150, 243, 0.7)',
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: '#2196F3',
+                },
+              },
             }}
           />
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1, 
+            mt: 2,
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+          }}>
+            {['TERRE', 'ESPACE PROFOND', 'GALAXIES', 'NÉBULEUSES', 'PLANÈTES', 'ÉTOILES'].map((category) => (
+              <Chip
+                key={category}
+                label={category}
+                onClick={() => setSearchQuery(category.toLowerCase())}
+                sx={{
+                  background: 'rgba(33, 150, 243, 0.1)',
+                  borderColor: 'rgba(33, 150, 243, 0.3)',
+                  color: 'rgba(0, 0, 0, 0.6)',
+                  '&:hover': {
+                    background: 'rgba(33, 150, 243, 0.3)',
+                  },
+                }}
+              />
+            ))}
+          </Box>
         </Box>
 
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <>
-            <Grid container spacing={3}>
-              {images.map((image) => (
-                <Grid item xs={12} sm={6} md={4} key={image.id}>
-                  <Card 
-                    sx={{ 
-                      height: '100%',
-                      cursor: 'pointer',
-                      transition: 'transform 0.2s',
-                      '&:hover': {
-                        transform: 'scale(1.02)'
-                      }
+        <Grid container spacing={3}>
+          {images.map((image) => (
+            <Grid item xs={12} sm={6} md={4} key={image.id}>
+              <Card 
+                className="fade-scale card-hover"
+                sx={{
+                  height: '100%',
+                  background: '#fff',
+                  backdropFilter: 'blur(10px)',
+                }}
+              >
+                <Box sx={{ position: 'relative' }}>
+                  <CardMedia
+                    component="img"
+                    height="260"
+                    image={image.url}
+                    alt={image.title}
+                    className={loading ? 'blur-load' : 'blur-load loaded'}
+                    sx={{
+                      objectFit: 'cover',
+                      transition: 'transform 0.3s ease-in-out',
                     }}
-                    onClick={() => navigate(`/image/${image.id}`)}
+                  />
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.8))',
+                      p: 2,
+                    }}
                   >
-                    <CardMedia
-                      component="img"
-                      height="200"
-                      image={image.url}
-                      alt={image.title}
-                      sx={{ objectFit: 'cover' }}
-                    />
-                    <CardContent>
-                      <Typography gutterBottom variant="h6" component="div" noWrap>
-                        {image.title}
-                      </Typography>
-                      <Typography 
-                        variant="body2" 
-                        color="text.secondary"
-                        sx={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: '-webkit-box',
-                          WebkitLineClamp: 3,
-                          WebkitBoxOrient: 'vertical',
-                        }}
-                      >
-                        {image.description}
-                      </Typography>
-                      <Box sx={{ mt: 1 }}>
-                        <Chip 
-                          label={new Date(image.date).toLocaleDateString()} 
-                          size="small" 
-                          variant="outlined"
-                        />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
+                    <Typography variant="h6" sx={{ color: '#fff' }}>
+                      {image.title}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)' }}>
+                      {new Date(image.date).toLocaleDateString()}
+                    </Typography>
+                  </Box>
+                </Box>
+                <CardContent>
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      mb: 2,
+                    }}
+                  >
+                    {image.description}
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => handleImageClick(image)}
+                    sx={{
+                      background: 'linear-gradient(90deg, #2196F3 0%, #21CBF7 100%)',
+                      '&:hover': {
+                        background: 'linear-gradient(90deg, #2196F3 0%, #21CBF7 100%)',
+                        filter: 'brightness(1.1)',
+                      },
+                    }}
+                  >
+                    Voir plus
+                  </Button>
+                </CardContent>
+              </Card>
             </Grid>
+          ))}
+        </Grid>
 
-            {!loading && images.length === 0 && searchQuery && (
-              <Box sx={{ textAlign: 'center', mt: 4 }}>
-                <Typography>Aucune image trouvée pour "{searchQuery}"</Typography>
-              </Box>
-            )}
-          </>
-        )}
+        <Dialog
+          open={!!selectedImage}
+          onClose={handleCloseDialog}
+          maxWidth="md"
+          fullWidth
+          PaperProps={{
+            sx: {
+              background: '#fff',
+              backdropFilter: 'blur(10px)',
+              borderRadius: '16px',
+            },
+          }}
+        >
+          {selectedImage && (
+            <>
+              <DialogContent>
+                <img
+                  src={selectedImage.url}
+                  alt={selectedImage.title}
+                  style={{
+                    width: '100%',
+                    height: 'auto',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                  }}
+                />
+                <Typography variant="h5" gutterBottom>
+                  {selectedImage.title}
+                </Typography>
+                <Typography variant="body1" paragraph>
+                  {selectedImage.description}
+                </Typography>
+                <Box sx={{ 
+                  display: 'flex', 
+                  gap: 2,
+                  flexWrap: 'wrap',
+                  mt: 2,
+                }}>
+                  <Chip
+                    icon={<CalendarTodayIcon />}
+                    label={new Date(selectedImage.date).toLocaleDateString()}
+                    sx={{
+                      background: 'rgba(33, 150, 243, 0.1)',
+                      borderColor: 'rgba(33, 150, 243, 0.3)',
+                    }}
+                  />
+                </Box>
+              </DialogContent>
+              <DialogActions>
+                <Button onClick={handleCloseDialog}>Fermer</Button>
+              </DialogActions>
+            </>
+          )}
+        </Dialog>
       </Box>
     </Container>
   );
